@@ -1,7 +1,6 @@
 import os
-from dotenv import load_dotenv
 from langchain_groq import ChatGroq
-from langchain_huggingface import HuggingFaceEmbeddings 
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -9,73 +8,59 @@ from langchain_classic.chains import create_history_aware_retriever, create_retr
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
-from langchain_community.chat_message_histories import SQLChatMessageHistory
+from langchain_mongodb.chat_message_histories import MongoDBChatMessageHistory
+from services.MedicalBotService import get_summary_for_bot
+from config import GROQ_API_KEY, MONGO_URI, MONGO_DB
 
-load_dotenv()
-
-PERSIST_DIRECTORY = "./chroma_db"  
-DATA_PATH = "./ChatbotData"              
+PERSIST_DIRECTORY = "./chroma_db"
+DATA_PATH = "./ChatbotData"
 
 conversational_rag_chain = None
 
 def get_session_history(session_id: str):
-    """
-    Crea o recupera el historial desde una base de datos SQLite local.
-    El archivo se creará automáticamente como 'chat_history.db'.
-    """
-    return SQLChatMessageHistory(
+
+    return MongoDBChatMessageHistory(
+        connection_string=MONGO_URI,
         session_id=session_id,
-        connection="sqlite:///chat_history.db" 
+        database_name=MONGO_DB,
+        collection_name="chat_histories"
     )
 
 def initialize_chatbot():
-    """
-    Esta función se ejecuta AL INICIAR el servidor.
-    Carga documentos, crea embeddings y prepara la cadena.
-    """
     global conversational_rag_chain
     
-    print("🔄 Inicializando Chatbot de Estrés...")
-
-    # 1. Configurar LLM
-    api_key = os.getenv("GROQ_API_KEY")
+    print("🔄 Inicializando Medical Bot (Groq + RAG)...")
+    api_key = GROQ_API_KEY
     if not api_key:
-        raise ValueError("GROQ_API_KEY no encontrada en .env")
+        print("⚠️ ADVERTENCIA: GROQ_API_KEY no encontrada.")
+        return
         
-    llm = ChatGroq(api_key=api_key, model="llama-3.3-70b-versatile")
+    llm = ChatGroq(api_key=api_key, model="llama-3.3-70b-versatile", temperature=0.3)
 
-    # 2. Embeddings (son los traductores de texto a números)
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
-    # 3. Cargar o Crear Base de Datos Vectorial
     if os.path.exists(PERSIST_DIRECTORY) and os.listdir(PERSIST_DIRECTORY):
         print("📂 Cargando base de datos vectorial existente...")
         vectorstore = Chroma(persist_directory=PERSIST_DIRECTORY, embedding_function=embeddings)
     else:
-        print("📚 Procesando libros por primera vez (esto puede tardar)...")
-        # Carga todos los .txt de la carpeta data
+        print("📚 Procesando documentos médicos...")
+        if not os.path.exists(DATA_PATH):
+            os.makedirs(DATA_PATH)
+            
         loader = DirectoryLoader(DATA_PATH, glob="*.txt", loader_cls=TextLoader, loader_kwargs={'encoding': 'utf-8'})
         docs = loader.load()
         
         if not docs:
-            print("⚠️ No se encontraron documentos en /data. El bot no sabrá nada específico.")
-            return
-
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        splits = text_splitter.split_documents(docs)
-        
-        vectorstore = Chroma.from_documents(
-            documents=splits, 
-            embedding=embeddings, 
-            persist_directory=PERSIST_DIRECTORY
-        )
-        print("✅ Libros procesados y guardados.")
+            print("⚠️ No hay documentos en ChatbotData. El bot funcionará sin conocimiento médico específico.")
+            vectorstore = Chroma(embedding_function=embeddings, persist_directory=PERSIST_DIRECTORY)
+        else:
+            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            splits = text_splitter.split_documents(docs)
+            vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings, persist_directory=PERSIST_DIRECTORY)
+            print("✅ Documentos procesados.")
 
     retriever = vectorstore.as_retriever()
 
-    # 4. Prompts Personalizados para Estrés
-    
-    # Contextualizar pregunta (para que entienda referencias al pasado)
     contextualize_q_system_prompt = (
         "Given a chat history and the latest user question "
         "which might reference context in the chat history, "
@@ -83,6 +68,7 @@ def initialize_chatbot():
         "without the chat history. Do NOT answer the question, "
         "just reformulate it if needed and otherwise return it as is."
     )
+    
     contextualize_q_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", contextualize_q_system_prompt),
@@ -91,16 +77,20 @@ def initialize_chatbot():
         ]
     )
 
-    # Prompt del Sistema (Personalidad del Bot)
     system_prompt = (
-        "Eres un asistente empático y experto en gestión del estrés llamado 'StressGuard AI'. "
-        "Utiliza los siguientes fragmentos de contexto recuperado (libros sobre estrés) "
-        "para responder a la pregunta del usuario. "
-        "Si no sabes la respuesta basándote en el contexto, di que no lo sabes, no inventes. "
-        "Da consejos prácticos, cálidos y accionables. Mantén la respuesta concisa (máximo 4 oraciones)."
+        "Eres un asistente médico experto y empático. "
+        "Tu objetivo es ayudar al paciente basándote en su historial clínico y en tu conocimiento médico."
+        "\n\n"
+        "--- HISTORIAL DEL PACIENTE (Desde Base de Datos) ---\n"
+        "{patient_history}\n"
+        "----------------------------------------------------\n\n"
+        "Utiliza los siguientes fragmentos de contexto médico recuperado (RAG) "
+        "para responder a la pregunta. Si no sabes, dilo, no inventes nada"
         "\n\n"
         "{context}"
+
     )
+    
     qa_prompt = ChatPromptTemplate.from_messages(
         [
             ("system", system_prompt),
@@ -109,12 +99,10 @@ def initialize_chatbot():
         ]
     )
 
-    # 5. Construir Cadenas
     history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_q_prompt)
     question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
     rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
 
-    # 6. Cadena final con memoria
     conversational_rag_chain = RunnableWithMessageHistory(
         rag_chain,
         get_session_history,
@@ -122,15 +110,21 @@ def initialize_chatbot():
         history_messages_key="chat_history",
         output_messages_key="answer",
     )
-    print("🤖 Chatbot listo y cargado.")
+    print("🤖 Medical Bot listo.")
 
-def chat_with_bot(message: str, session_id: str):
-    """Función que llama el endpoint"""
+async def chat_with_bot(message: str, session_id: str, db):
     if conversational_rag_chain is None:
-        raise ValueError("El chatbot no ha sido inicializado.")
+        initialize_chatbot()
         
+    summary_response = await get_summary_for_bot(session_id, db)
+    patient_history_txt = summary_response.get("content", "Sin historial previo.")
+
     response = conversational_rag_chain.invoke(
-        {"input": message},
+        {
+            "input": message, 
+            "patient_history": patient_history_txt
+        },
         config={"configurable": {"session_id": session_id}},
     )
+    
     return response["answer"]

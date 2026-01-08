@@ -8,12 +8,12 @@ class User(BaseModel):
     nombre: str
     email: str
     password: str
+    birthdate: str
+    gender: str
 
     # Datos como paciente Opcionales, se pueden agregar después
-    #age: int
-    #weight: float
-    #height: float
-    #medical_conditions: str
-    #medications: str
-    #allergies: str
-
+    weight: Optional[float] = None
+    height: Optional[float] = None
+    medical_conditions: Optional[str] = None
+    medications: Optional[str] = None
+    allergies: Optional[str] = None
