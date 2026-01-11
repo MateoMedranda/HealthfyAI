@@ -52,7 +52,7 @@ Backend/
 ## ⚡ Instalación y uso rápido
 1. Clona el repositorio y entra al directorio Backend:
    ```bash
-   git clone https://github.com/tuusuario/HealthfyAI.git
+   git clone https://github.com/MateoMedranda/HealthfyAI.git
    cd HealthfyAI/Backend
    ```
 2. Instala las dependencias:
@@ -61,15 +61,20 @@ Backend/
    ```
 3. Configura tus variables de entorno en un archivo `.env`:
    ```env
-   MONGO_URI=...
-   MONGO_DB=...
-   GROQ_API_KEY=...
-   LANGCHAIN_API_KEY=...
+   MONGO_URI=
+   MONGO_DB=
+   GROQ_API_KEY=
+
+   LANGCHAIN_TRACING_V2=
+   LANGCHAIN_ENDPOINT=
+   LANGCHAIN_API_KEY=
+   LANGCHAIN_PROJECT=
+   MODEL_PATH=
    ...
    ```
 4. Ejecuta el servidor:
    ```bash
-   uvicorn main:app --reload
+   fastapi dev main.py
    ```
 5. Accede a la documentación interactiva en: [http://localhost:8000/docs](http://localhost:8000/docs)
 
@@ -95,11 +100,6 @@ Backend/
 - [MongoDB](https://www.mongodb.com/)
 - [Groq](https://groq.com/)
 - [HuggingFace](https://huggingface.co/)
-
----
-
-## 💡 Contribuciones
-¡Las contribuciones son bienvenidas! Abre un issue o pull request para sugerir mejoras o reportar bugs.
 
 ---
 

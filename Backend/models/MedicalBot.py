@@ -20,7 +20,6 @@ class DetallesMedicos(BaseModel):
     deficiencias_nutricionales: Optional[List[str]] = Field(description="Posibles faltas de vitaminas/minerales")
 
 class ClinicalRecord(BaseModel):
-    """Modelo maestro para guardar en MongoDB"""
     tipo_analisis: Literal["Dermatológico", "Nutricional", "General"]
     origen_datos: OrigenDatos
     diagnostico: DiagnosticoDetalle
