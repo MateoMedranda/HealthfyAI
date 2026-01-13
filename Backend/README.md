@@ -87,10 +87,27 @@ Backend/
 
 ---
 
+
 ## 🤖 Endpoints principales
-- `/api/users/` — Gestión de usuarios (CRUD)
-- `/medical-bot/chat/{session_id}` — Chat con el bot médico
-- (Próximamente) `/image-detection/` — Análisis de imágenes
+
+### 👤 Usuarios (`/api/users`)
+- `POST /api/users/` — Crear un nuevo usuario
+- `GET /api/users/` — Listar todos los usuarios
+- `GET /api/users/{email}` — Obtener usuario por email
+- `PUT /api/users/{email}` — Actualizar usuario por email
+- `DELETE /api/users/{email}` — Eliminar usuario por email
+
+### 💬 Chat Médico (`/medical-bot`)
+- `POST /medical-bot/chat/{session_id}?user_id=...` — Enviar mensaje al bot médico (requiere `user_id` y `session_id`)
+- `GET /medical-bot/chat-messages/{session_id}` — Obtener historial de mensajes de chat de una sesión
+- `GET /medical-bot/conversations/{user_id}` — Listar todas las conversaciones de un usuario
+- `GET /medical-bot/clinical-summary/{session_id}` — Obtener resumen clínico generado por el bot para una sesión
+- `GET /medical-bot/clinical-records/{session_id}?limit=5` — Obtener últimos registros clínicos de la sesión (parámetro `limit` opcional)
+
+### 🖼️ Detección de Imágenes (`/image-prediction`)
+- `POST /image-prediction/` — Analizar imagen médica (subir archivo en `form-data` como `file`)
+
+Todos los endpoints devuelven respuestas en formato JSON y gestionan errores con códigos HTTP apropiados.
 
 ---
 
