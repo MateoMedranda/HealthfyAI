@@ -1,11 +1,25 @@
 from models.User import User
-from utils.hashing import hash_password
+from utils.hashing import hash_password, verify_password
 
 #### Servicio para la gestión de usuarios
 
 class UserService:
     def __init__(self, db):
         self.db = db
+
+    async def login_user(self, email: str, password: str):
+        """Verifica las credenciales del usuario"""
+        user_data = await self.db.usuarios.find_one({"email": email})
+        if not user_data:
+            return {"status": "error", "message": "Usuario no encontrado"}
+        
+        # Verificar contraseña
+        if not verify_password(password, user_data["password"]):
+            return {"status": "error", "message": "Contraseña incorrecta"}
+        
+        # Convertir ObjectId a string
+        user_data["_id"] = str(user_data["_id"])
+        return {"status": "success", "message": "Login exitoso", "user_data": User(**user_data)}
 
     async def create_user(self,usuario: User):
         # Carga de datos del usuario para crear cuenta
@@ -34,6 +48,8 @@ class UserService:
     async def get_user_by_email(self, email: str):
         user_data = await self.db.usuarios.find_one({"email": email})
         if user_data:
+            # Convertir ObjectId a string
+            user_data["_id"] = str(user_data["_id"])
             return {"status": "success", "message": "Usuario encontrado", "user_data": User(**user_data)}
         return {"status": "error", "message": "Usuario no encontrado"}
 
@@ -48,6 +64,8 @@ class UserService:
 
         await self.db.usuarios.update_one({"email": email}, {"$set": user_dict})
         updated_user_data = await self.db.usuarios.find_one({"email": email})
+        # Convertir ObjectId a string
+        updated_user_data["_id"] = str(updated_user_data["_id"])
         return {"status": "success", "message": "Usuario actualizado exitosamente", "user_data": User(**updated_user_data)}
 
     async def delete_user(self, email: str):
@@ -58,6 +76,8 @@ class UserService:
         users_cursor = self.db.usuarios.find()
         users = []
         async for user_data in users_cursor:
+            # Convertir ObjectId a string
+            user_data["_id"] = str(user_data["_id"])
             users.append(User(**user_data))
         return users
 

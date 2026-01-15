@@ -1,12 +1,24 @@
 from fastapi import APIRouter, Depends, status, Response
+from pydantic import BaseModel
 from database.mongodb import get_db
 from services.UserService import UserService
 from models.User import User
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
 def get_user_service(db = Depends(get_db)):
     return UserService(db)
+
+@router.post("/login")
+async def login(login_data: LoginRequest, response: Response, service: UserService = Depends(get_user_service)):
+    result = await service.login_user(login_data.email, login_data.password)
+    if (result["status"] == "error"):
+        response.status_code = status.HTTP_401_UNAUTHORIZED
+    return result
 
 @router.post("/")
 async def create(usuario: User, response: Response, service: UserService = Depends(get_user_service)):
