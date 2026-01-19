@@ -152,6 +152,7 @@ class _LoginViewState extends State<LoginView> {
                     // Contraseña
                     CustomTextField(
                       label: 'Contraseña',
+                      hint: '************',
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       prefixIcon: const Icon(

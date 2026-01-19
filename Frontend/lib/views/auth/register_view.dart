@@ -244,6 +244,7 @@ class _RegisterViewState extends State<RegisterView> {
                       // Contraseña
                       CustomTextField(
                         label: 'Contraseña',
+                        hint: '**********',
                         controller: _passwordController,
                         obscureText: _obscurePassword,
                         prefixIcon: const Icon(
@@ -278,6 +279,7 @@ class _RegisterViewState extends State<RegisterView> {
                       // Confirmar contraseña
                       CustomTextField(
                         label: 'Confirmar contraseña',
+                        hint: '**********',
                         controller: _confirmPasswordController,
                         obscureText: _obscureConfirmPassword,
                         prefixIcon: const Icon(

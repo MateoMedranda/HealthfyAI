@@ -15,3 +15,4 @@ sentence-transformers
 torch
 torchvision
 pillow
+timm
