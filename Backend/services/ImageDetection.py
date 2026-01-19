@@ -1,9 +1,11 @@
 import torch
 import torch.nn as nn
-from torchvision import models, transforms
+import timm
+import joblib
 from PIL import Image
+import torchvision.transforms as transforms
 import io
-from config import MODEL_PATH 
+from config import MODEL_PATH, LABEL_ENCODE_PATH
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -14,90 +16,77 @@ _vision_class_names = []
 def load_vision_model():
     global _vision_model, _vision_transform, _vision_class_names
 
-    print(f"👁️ Cargando Checkpoint (ResNet50) en {DEVICE}...")
+    print(f"👁️ Cargando Checkpoint (ConvNeXt Tiny) en {DEVICE}...")
+
     try:
-        # 1. CARGAR CHECKPOINT
-        checkpoint = torch.load(MODEL_PATH, map_location=DEVICE, weights_only=False)
-        
-        # 2. RECUPERAR METADATOS
-        _vision_class_names = checkpoint['class_names']
-        num_classes = checkpoint['num_classes']
+        le = joblib.load(LABEL_ENCODE_PATH)
+        _vision_class_names = list(le.classes_)
+        num_classes = len(_vision_class_names)
+
         print(f"📂 Clases encontradas: {_vision_class_names}")
 
-        # 3. DEFINIR ARQUITECTURA
-        model = models.resnet50(weights=None) 
-        model.fc = nn.Linear(model.fc.in_features, num_classes)
-        
-        # 4. CARGAR LOS PESOS
-        model.load_state_dict(checkpoint['model_state_dict'])
+        model = timm.create_model(
+            "convnext_tiny",
+            pretrained=False,
+            num_classes=num_classes
+        )
+
+        model.load_state_dict(
+            torch.load(MODEL_PATH, map_location=DEVICE)
+        )
+
         model.to(DEVICE)
         model.eval()
-        
-        # 5. DEFINIR TRANSFORMACIONES
+
         transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
-            transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            transforms.Normalize(
+                [0.485, 0.456, 0.406],
+                [0.229, 0.224, 0.225]
+            )
         ])
 
         _vision_model = model
         _vision_transform = transform
-        print("✅ Modelo ResNet50 cargado en memoria global.")
+
+        print("✅ Modelo ConvNeXt cargado en memoria global.")
 
     except FileNotFoundError:
-        print(f"❌ ERROR CRÍTICO: No se encontró el archivo en {MODEL_PATH}")
+        print(f"❌ ERROR: No se encontró el modelo en {MODEL_PATH}")
     except Exception as e:
         print(f"❌ Error cargando el modelo de visión: {e}")
 
-def convert_class_names(abreviacion: str):
-    clases = {
-        "akiec": "Queratosis actínica y carcinoma intraepitelial / enfermedad de Bowen",
-        "bcc": "Carcinoma basocelular",
-        "bkl": "Lesiones tipo queratosis benigna (lentigos solares / queratosis seborreicas / LPLK)",
-        "df": "Dermatofibroma",
-        "mel": "Melanoma",
-        "nv": "Nevos melanocíticos",
-        "vasc": "Lesiones vasculares (angiomas, angiokeratomas, granulomas piógenos, hemorragias)"
-    }
-    
-    return clases.get(abreviacion.lower(), "Abreviación no válida")
-
 def predict_image_class(image_bytes):
-    """
-    Función que usa el modelo global para predecir.
-    No instancia nada, solo usa lo que ya está en memoria.
-    """
     global _vision_model, _vision_transform, _vision_class_names
 
     if _vision_model is None:
-        print("⚠️ Modelo de visión no estaba listo. Intentando cargar...")
+        print("⚠️ Modelo no cargado. Inicializando...")
         load_vision_model()
         if _vision_model is None:
             raise Exception("El modelo de visión no se pudo cargar.")
 
     try:
-        # 1. Preprocesar imagen
         image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         image_tensor = _vision_transform(image).unsqueeze(0).to(DEVICE)
 
-        # 2. Inferencia (Sin calcular gradientes para ahorrar memoria)
-        with torch.no_grad(): 
+        with torch.no_grad():
             outputs = _vision_model(image_tensor)
             probabilities = torch.nn.functional.softmax(outputs, dim=1)
-        
-        # 3. Interpretar resultados
+
         top_prob, top_class = torch.max(probabilities, 1)
         index = top_class.item()
 
         return {
-            "class_name": convert_class_names(_vision_class_names[index]), 
+            "class_name": _vision_class_names[index],
             "confidence": round(top_prob.item(), 4),
             "index": index
         }
+
     except Exception as e:
-        print(f"Error durante la predicción: {e}")
+        print(f"❌ Error durante la predicción: {e}")
         raise e
-    
+
     
 '''
 async def calcular_gravedad_con_ia(cnn_resultado: str, sintomas: list[str]) -> str:
