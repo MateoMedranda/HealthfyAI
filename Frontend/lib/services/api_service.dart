@@ -4,7 +4,7 @@ import '../models/user_model.dart';
 
 class ApiService {
   // Cambia esta URL por la de tu backend
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = 'http://192.168.100.73:8000';
 
   // Registrar usuario
   Future<Map<String, dynamic>> register(UserModel user) async {
