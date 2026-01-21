@@ -6,6 +6,47 @@ from PIL import Image
 import torchvision.transforms as transforms
 import io
 from config import MODEL_PATH, LABEL_ENCODE_PATH
+import os
+from datetime import datetime
+from models.Detection import Detection
+from database.mongodb import get_db
+
+async def save_image_locally(file_bytes: bytes, filename: str, conversation_id: str) -> str:
+    images_dir = os.path.join(os.getcwd(), "images", str(conversation_id))
+    os.makedirs(images_dir, exist_ok=True)
+    image_path = os.path.join(images_dir, filename)
+    with open(image_path, "wb") as f:
+        f.write(file_bytes)
+    rel_path = os.path.relpath(image_path, os.getcwd())
+    return rel_path
+
+async def save_detection(file_bytes: bytes, filename: str, detected_class: str, confidence: float, user_id: str, conversation_id: str):
+    image_path = await save_image_locally(file_bytes, filename, conversation_id)
+    db = get_db()
+    detection = Detection(
+        image_url=image_path,
+        detected_class=detected_class,
+        confidence=confidence,
+        date=datetime.utcnow(),
+        user_id=user_id,
+        conversation_id=conversation_id
+    )
+    result = await db["detections"].insert_one(detection.dict())
+    return detection
+
+async def list_detections(user_id: str):
+    db = get_db()
+    cursor = db["detections"].find({"user_id": user_id})
+    detections = []
+    async for d in cursor:
+        detections.append({
+            "image_url": d["image_url"],
+            "detected_class": d["detected_class"],
+            "confidence": d["confidence"],
+            "date": d["date"],
+            "conversation_id": d.get("conversation_id", "")
+        })
+    return detections
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

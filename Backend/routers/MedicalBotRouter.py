@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from database.mongodb import get_db
 from services.MedicalBotService import MedicalBotService
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/medical-bot", tags=["Chat with Medical Bot"])
 

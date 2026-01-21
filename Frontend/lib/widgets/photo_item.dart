@@ -29,8 +29,8 @@ class BigPhotoBox extends StatelessWidget {
           : ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: InteractiveViewer(
-          child: Image.file(
-            File(photo.path),
+          child: Image.network(
+            photo.path,
             fit: BoxFit.cover,
             width: double.infinity,
             height: double.infinity,

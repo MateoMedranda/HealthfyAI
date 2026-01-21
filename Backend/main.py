@@ -7,6 +7,7 @@ from database.mongodb import connect_to_mongo, close_mongo_connection
 from services.MedicalBotService import initialize_chatbot
 from services.ImageDetection import load_vision_model
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -21,6 +22,8 @@ async def lifespan(app: FastAPI):
     close_mongo_connection()
 
 app = FastAPI(title="Healthfy API", version="1.0.0", lifespan=lifespan)
+
+app.mount("/images", StaticFiles(directory="images"), name="images")
 
 app.add_middleware(
     CORSMiddleware,

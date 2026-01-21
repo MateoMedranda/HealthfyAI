@@ -17,15 +17,15 @@ class _HomeViewState extends State<HomeView> {
 
   final List<Widget> _tabs = const [
     DashboardTab(),
-    ChatTab(),
     ScanTab(),
+    ChatTab(),
     ProfileTab(),
   ];
 
   final List<String> _titles = [
     'Dashboard',
-    'Chat Médico',
     'Escanear',
+    'Diagnósticos',
     'Perfil',
   ];
 
@@ -55,12 +55,12 @@ class _HomeViewState extends State<HomeView> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Inicio'),
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.camera_alt),
             label: 'Escanear',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.chat_bubble_outline),
+            label: 'Diagnósticos',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
         ],

@@ -57,17 +57,27 @@ class ScanTab extends StatelessWidget {
                     child:Column(
                       children: [
                         Text(
-                          'Análisis Preliminar',
+                          'Resultado del Análisis',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                         ),
+                        const SizedBox(height: 8),
                         Text(
-                              'La imagen muestra una posible irritación cutánea. '
-                              'Se recomienda evitar la exposición directa al sol y '
-                              'consultar a un dermatólogo si los síntomas persisten.',
+                          photo!.name.isNotEmpty ? photo.name : 'No se pudo identificar la lesión',
                           textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 14),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.redAccent,
+                          ),
                         ),
+                        const SizedBox(height: 6),
+                        Text(
+                          photo.description,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                        ),
+                        const SizedBox(height: 10),
                       ],
                     ),
                   ),

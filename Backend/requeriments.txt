@@ -16,3 +16,4 @@ torch
 torchvision
 pillow
 timm
+boto3
