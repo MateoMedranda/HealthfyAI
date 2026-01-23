@@ -32,7 +32,8 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: _currentIndex == 1 ? null :
+      AppBar(
         title: Text(_titles[_currentIndex]),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
