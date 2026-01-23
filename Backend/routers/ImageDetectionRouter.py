@@ -1,29 +1,60 @@
 import io
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
-from services.ImageDetection import predict_image_class, save_detection, list_detections
+from services.ImageDetection import predict_image_class, save_image_locally, list_detections
 from uuid import uuid4
 from pydantic import BaseModel
+from database.mongodb import get_db
+from services.MedicalBotService import MedicalBotService
+from models.MedicalBot import ClinicalRecord, OrigenDatos, DiagnosticoDetalle, DetallesMedicos
 
 router = APIRouter(prefix="/image-prediction", tags=["Image Prediction"])
 
 class ChatRequest(BaseModel):
     message: str
 
+def get_medicalbot_service(db = Depends(get_db)):
+    return MedicalBotService(db)
+
 @router.post("/detect-image")
-async def detect_image(file: UploadFile = File(...), user_id: str = '', conversation_id: str = ''):
+async def detect_image(file: UploadFile = File(...), user_id: str = '', conversation_id: str = '', service: MedicalBotService = Depends(get_medicalbot_service)):
     try:
         image_bytes = await file.read()
         result = predict_image_class(image_bytes)
         filename = f"{str(uuid4())}_{file.filename}"
-        detection = await save_detection(
+        image_path = await save_image_locally(
             file_bytes=image_bytes,
             filename=filename,
-            detected_class=result["class_name"],
-            confidence=result["confidence"],
-            user_id=user_id,
             conversation_id=conversation_id
         )
-        return detection.dict()
+        
+        clinical_record = ClinicalRecord(
+            tipo_analisis="Dermatológico",
+            origen_datos=OrigenDatos(
+                cnn_usado=True,
+                cnn_confianza=result["confidence"],
+                imagen_id=image_path 
+            ),
+            diagnostico=DiagnosticoDetalle(
+                condicion_principal=result["class_name"],
+                gravedad="Media", 
+                estado_evolutivo="Nuevo"
+            ),
+            detalles_medicos=DetallesMedicos(
+                sintomas=["Detectado por análisis de imagen"],
+                zona_cuerpo="No especificada"
+            ),
+            recomendacion_bot="Se recomienda iniciar una conversación con el asistente médico para obtener más detalles y recomendaciones personalizadas.",
+            user_id=user_id
+        )
+        
+        await service.save_clinical_record(session_id=conversation_id, record=clinical_record)
+        
+        return {
+            "class_name": result["class_name"],
+            "confidence": result["confidence"],
+            "image_url": image_path,
+            "message": "Registro clínico creado exitosamente"
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

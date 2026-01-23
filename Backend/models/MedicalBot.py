@@ -16,8 +16,8 @@ class DiagnosticoDetalle(BaseModel):
 
 class DetallesMedicos(BaseModel):
     sintomas: List[str] = Field(description="Lista de síntomas reportados")
-    zona_cuerpo: Optional[str] = Field(description="Parte del cuerpo afectada")
-    deficiencias_nutricionales: Optional[List[str]] = Field(description="Posibles faltas de vitaminas/minerales")
+    zona_cuerpo: Optional[str] = Field(default=None, description="Parte del cuerpo afectada")
+    deficiencias_nutricionales: Optional[List[str]] = Field(default=None, description="Posibles faltas de vitaminas/minerales")
 
 class ClinicalRecord(BaseModel):
     tipo_analisis: Literal["Dermatológico", "Nutricional", "General"]
@@ -25,5 +25,5 @@ class ClinicalRecord(BaseModel):
     diagnostico: DiagnosticoDetalle
     detalles_medicos: DetallesMedicos
     recomendacion_bot: str = Field(description="Resumen de la acción recomendada")
-    fecha_registro: datetime = Field(default_factory=datetime.now(), description="Fecha y hora del registro")
-    
+    user_id: str = Field(description="ID del usuario")
+    fecha_registro: datetime = Field(default_factory=datetime.now, description="Fecha y hora del registro")

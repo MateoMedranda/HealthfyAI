@@ -13,6 +13,7 @@ from datetime import datetime
 from pymongo import DESCENDING
 from models.MedicalBot import ClinicalRecord
 import json
+from bson import ObjectId
 from config import GROQ_API_KEY, MONGO_URI, MONGO_DB
 
 # configuración para obtener la base de datos vectorial y los datos del bot que son archivos de texto
@@ -86,14 +87,18 @@ def initialize_chatbot():
 
     # prompt principal del bot con historial del paciente y contexto médico
     system_prompt = (
+        "El nombre del paciente es {user_name}. Siempre responde solo con el nombre no con el apellido"
         "Eres un asistente médico experto y empático. "
-        "Tu objetivo es ayudar al paciente basándote en su historial clínico y en tu conocimiento médico."
+        "Tu objetivo es ayudar al paciente basándote en su historial clínico y en el conocimiento médico que se encuentra en los recursos médicos."
         "\n\n"
-        "--- HISTORIAL DEL PACIENTE (Desde Base de Datos) ---\n"
+        "--- Análisis preliminar (Historial clínico del paciente) ---\n"
         "{patient_history}\n"
         "----------------------------------------------------\n\n"
+        "Con los resultados obtenidos del historial clínico, debes preguntar por los síntomas, y cuando te describa, contrasta con los recursos médicos"
+        "Además, no redactes respuestas tan largas, solo responde con lo que sea necesario"
         "Utiliza los siguientes fragmentos de contexto médico recuperado (RAG) "
-        "para responder a la pregunta. Si no sabes, dilo, no inventes nada"
+        "para responder a la pregunta. Si no sabes, dilo, no inventes nada y que no haya redundancia, se claro con las respuestas"
+        "Comportate como un médico experto pero si no sabes la respuesta no inventes"
         "\n\n"
         "{context}"
     )
@@ -179,6 +184,10 @@ class MedicalBotService:
             return {"status": "success", "messages": [], "detail": "Chat vacío o no encontrado"}
         return {"status": "success", "messages": messages}
 
+    async def get_user_name(self, user_id: str):
+        user = await self.db.usuarios.find_one({"_id": ObjectId(user_id)})
+        return user["nombre"]
+
     async def chat_with_bot(self, message: str, session_id: str, user_id: str):
         global conversational_rag_chain
         if conversational_rag_chain is None:
@@ -191,10 +200,13 @@ class MedicalBotService:
             await self.update_conversation_timestamp(session_id)
         summary_response = await self.get_summary_for_bot(session_id)
         patient_history_txt = summary_response.get("content", "Sin historial previo.")
+        user_name = await self.get_user_name(user_id)
+
         response = conversational_rag_chain.invoke(
             {
                 "input": message, 
-                "patient_history": patient_history_txt
+                "patient_history": patient_history_txt,
+                "user_name": user_name
             },
             config={"configurable": {"session_id": session_id}},
         )

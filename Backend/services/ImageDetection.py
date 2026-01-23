@@ -8,7 +8,6 @@ import io
 from config import MODEL_PATH, LABEL_ENCODE_PATH
 import os
 from datetime import datetime
-from models.Detection import Detection
 from database.mongodb import get_db
 
 async def save_image_locally(file_bytes: bytes, filename: str, conversation_id: str) -> str:
@@ -20,31 +19,20 @@ async def save_image_locally(file_bytes: bytes, filename: str, conversation_id: 
     rel_path = os.path.relpath(image_path, os.getcwd())
     return rel_path
 
-async def save_detection(file_bytes: bytes, filename: str, detected_class: str, confidence: float, user_id: str, conversation_id: str):
-    image_path = await save_image_locally(file_bytes, filename, conversation_id)
-    db = get_db()
-    detection = Detection(
-        image_url=image_path,
-        detected_class=detected_class,
-        confidence=confidence,
-        date=datetime.utcnow(),
-        user_id=user_id,
-        conversation_id=conversation_id
-    )
-    result = await db["detections"].insert_one(detection.dict())
-    return detection
-
 async def list_detections(user_id: str):
     db = get_db()
-    cursor = db["detections"].find({"user_id": user_id})
+    cursor = db["clinical_records"].find(
+        {"user_id": user_id, "origen_datos.cnn_usado": True}
+    ).sort("fecha_registro", -1)
+    
     detections = []
     async for d in cursor:
         detections.append({
-            "image_url": d["image_url"],
-            "detected_class": d["detected_class"],
-            "confidence": d["confidence"],
-            "date": d["date"],
-            "conversation_id": d.get("conversation_id", "")
+            "image_url": d["origen_datos"]["imagen_id"],
+            "detected_class": d["diagnostico"]["condicion_principal"],
+            "confidence": d["origen_datos"]["cnn_confianza"],
+            "date": d["fecha_registro"],
+            "conversation_id": d.get("session_id", "")
         })
     return detections
 
@@ -156,7 +144,7 @@ async def calcular_gravedad_con_ia(cnn_resultado: str, sintomas: list[str]) -> s
     })
     
     return resultado.content.strip() 
-
+    
 async def determinar_estado_evolutivo(user_id: str, zona_cuerpo: str, db) -> str:
     ultimo_registro = await db["clinical_records"].find_one(
         {"user_id": user_id, "detalles_medicos.zona_cuerpo": zona_cuerpo},

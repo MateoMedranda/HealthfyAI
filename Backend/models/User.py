@@ -8,8 +8,8 @@ class User(BaseModel):
     nombre: str
     email: str
     password: str
-    birthdate: str
-    gender: str
+    birthdate: Optional[str] = None
+    gender: Optional[str] = None
 
     # Datos como paciente Opcionales, se pueden agregar después
     weight: Optional[float] = None
