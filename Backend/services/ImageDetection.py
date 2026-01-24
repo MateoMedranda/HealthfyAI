@@ -29,7 +29,7 @@ async def list_detections(user_id: str):
     async for d in cursor:
         detections.append({
             "image_url": d["origen_datos"]["imagen_id"],
-            "detected_class": d["diagnostico"]["condicion_principal"],
+            "class_name": d["diagnostico"]["condicion_principal"],
             "confidence": d["origen_datos"]["cnn_confianza"],
             "date": d["fecha_registro"],
             "conversation_id": d.get("session_id", "")

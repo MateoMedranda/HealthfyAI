@@ -73,7 +73,7 @@ class ScanTab extends StatelessWidget {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            photo.description,
+                            photo.confidence,
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 14, color: Colors.black87),
                           ),

@@ -19,7 +19,6 @@ class ApiService {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
-        // El backend devuelve {status, message, user_data}
         if (responseData['status'] == 'success') {
           return {'success': true, 'data': responseData['user_data']};
         } else {

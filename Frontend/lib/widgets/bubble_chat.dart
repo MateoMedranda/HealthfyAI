@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 
 class BubbleChat extends StatelessWidget {
-  final String timestamp;
   final String text;
   final Color color;
   final Color textColor;
@@ -11,7 +10,6 @@ class BubbleChat extends StatelessWidget {
 
   const BubbleChat({
     super.key,
-    required this.timestamp,
     required this.text,
     required this.color,
     required this.textColor,
@@ -76,17 +74,6 @@ class BubbleChat extends StatelessWidget {
                   height: 1.3,
                 ),
               ),
-            const SizedBox(height: 4),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: Text(
-                timestamp,
-                style: TextStyle(
-                  color: textColor.withOpacity(0.7),
-                  fontSize: 13,
-                ),
-              ),
-            ),
           ],
         ),
       ),

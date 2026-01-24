@@ -23,7 +23,7 @@ class PhotoDetectionService {
       return Photo(
         path: fullUrl,
         name: data['class_name'] ?? '',
-        description: 'Confianza: ${data['confidence']}',
+        confidence: 'Confianza: ${data['confidence']}',
       );
     }
     return null;

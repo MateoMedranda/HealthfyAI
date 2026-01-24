@@ -21,8 +21,9 @@ from config import GROQ_API_KEY, MONGO_URI, MONGO_DB
 PERSIST_DIRECTORY = "./chroma_db"
 DATA_PATH = "./ChatbotData"
 
-# Variable global para crear el RAG conversasional 
+# Variable global para crear el RAG conversasional
 conversational_rag_chain = None
+
 
 def get_session_history(session_id: str):
     # Automaticamente lagchain usa esta función para obtener el historial de mensajes
@@ -32,6 +33,7 @@ def get_session_history(session_id: str):
         database_name=MONGO_DB,
         collection_name="chat_histories"
     )
+
 
 def initialize_chatbot():
     global conversational_rag_chain
@@ -43,26 +45,33 @@ def initialize_chatbot():
 
     # ======= configuración del chat de groq, embeddings y base de datos vectorial ======
     # Crear el LLM de Groq, modificar temperatura para regular creatividad, alternar modelos si es necesario
-    llm = ChatGroq(api_key=api_key, model="llama-3.3-70b-versatile", temperature=0.3)
+    llm = ChatGroq(api_key=api_key,
+                   model="llama-3.3-70b-versatile", temperature=0.3)
     embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
     # Cargar o crear la base de datos vectorial con Chroma
     if os.path.exists(PERSIST_DIRECTORY) and os.listdir(PERSIST_DIRECTORY):
         print("📂 Cargando base de datos vectorial existente...")
-        vectorstore = Chroma(persist_directory=PERSIST_DIRECTORY, embedding_function=embeddings)
+        vectorstore = Chroma(
+            persist_directory=PERSIST_DIRECTORY, embedding_function=embeddings)
     else:
         print("📚 Procesando documentos médicos...")
         if not os.path.exists(DATA_PATH):
-            os.makedirs(DATA_PATH)     
-        loader = DirectoryLoader(DATA_PATH, glob="*.txt", loader_cls=TextLoader, loader_kwargs={'encoding': 'utf-8'})
-        docs = loader.load() 
+            os.makedirs(DATA_PATH)
+        loader = DirectoryLoader(
+            DATA_PATH, glob="*.txt", loader_cls=TextLoader, loader_kwargs={'encoding': 'utf-8'})
+        docs = loader.load()
         if not docs:
-            print("⚠️ No hay documentos en ChatbotData. El bot funcionará sin conocimiento médico específico.")
-            vectorstore = Chroma(embedding_function=embeddings, persist_directory=PERSIST_DIRECTORY)
+            print(
+                "⚠️ No hay documentos en ChatbotData. El bot funcionará sin conocimiento médico específico.")
+            vectorstore = Chroma(embedding_function=embeddings,
+                                 persist_directory=PERSIST_DIRECTORY)
         else:
-            text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=1000, chunk_overlap=200)
             splits = text_splitter.split_documents(docs)
-            vectorstore = Chroma.from_documents(documents=splits, embedding=embeddings, persist_directory=PERSIST_DIRECTORY)
+            vectorstore = Chroma.from_documents(
+                documents=splits, embedding=embeddings, persist_directory=PERSIST_DIRECTORY)
             print("✅ Documentos procesados.")
 
     retriever = vectorstore.as_retriever()
@@ -75,7 +84,7 @@ def initialize_chatbot():
         "without the chat history. Do NOT answer the question, "
         "just reformulate it if needed and otherwise return it as is."
     )
-    
+
     # recuperación del contexto permitiendo tener memoria de chat
     contextualize_q_prompt = ChatPromptTemplate.from_messages(
         [
@@ -102,7 +111,7 @@ def initialize_chatbot():
         "\n\n"
         "{context}"
     )
-    
+
     # prompt de preguntas y respuestas con contexto
     qa_prompt = ChatPromptTemplate.from_messages(
         [
@@ -112,9 +121,11 @@ def initialize_chatbot():
         ]
     )
 
-    history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_q_prompt)
+    history_aware_retriever = create_history_aware_retriever(
+        llm, retriever, contextualize_q_prompt)
     question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
-    rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
+    rag_chain = create_retrieval_chain(
+        history_aware_retriever, question_answer_chain)
     conversational_rag_chain = RunnableWithMessageHistory(
         rag_chain,
         get_session_history,
@@ -126,11 +137,11 @@ def initialize_chatbot():
 
 
 class MedicalBotService:
-    
+
     def __init__(self, db):
         self.db = db
 
-    async def create_conversation(self, session_id: str, user_id: str, title:str):
+    async def create_conversation(self, session_id: str, user_id: str, title: str):
         current_time = datetime.utcnow()
         new_conversation = {
             "session_id": session_id,
@@ -156,7 +167,8 @@ class MedicalBotService:
 
     async def get_all_conversations(self, user_id: str):
         conversations = []
-        cursor = self.db["conversations"].find({"user_id": user_id}).sort("updated_at", -1)
+        cursor = self.db["conversations"].find(
+            {"user_id": user_id}).sort("updated_at", -1)
         async for convo in cursor:
             conversations.append({
                 "session_id": convo["session_id"],
@@ -167,22 +179,22 @@ class MedicalBotService:
 
     async def get_chat_messages(self, session_id: str):
         messages = []
-        cursor = self.db["chat_histories"].find({"SessionId": session_id}) 
+        cursor = self.db["chat_histories"].find({"SessionId": session_id}).sort("_id", 1)
         async for doc in cursor:
             try:
                 if "History" in doc:
                     msg_content = json.loads(doc["History"])
-                    
+
                     messages.append({
-                        "type": msg_content["type"], 
+                        "type": msg_content["type"],
                         "content": msg_content["data"]["content"]
                     })
             except Exception as e:
                 print(f"Error parseando mensaje: {e}")
                 continue
         if not messages:
-            return {"status": "success", "messages": [], "detail": "Chat vacío o no encontrado"}
-        return {"status": "success", "messages": messages}
+            return []
+        return messages
 
     async def get_user_name(self, user_id: str):
         user = await self.db.usuarios.find_one({"_id": ObjectId(user_id)})
@@ -199,19 +211,19 @@ class MedicalBotService:
         else:
             await self.update_conversation_timestamp(session_id)
         summary_response = await self.get_summary_for_bot(session_id)
-        patient_history_txt = summary_response.get("content", "Sin historial previo.")
+        patient_history_txt = summary_response.get(
+            "content", "Sin historial previo.")
         user_name = await self.get_user_name(user_id)
 
         response = conversational_rag_chain.invoke(
             {
-                "input": message, 
+                "input": message,
                 "patient_history": patient_history_txt,
                 "user_name": user_name
             },
             config={"configurable": {"session_id": session_id}},
         )
-        return {"status": "success", "content": response["answer"]}
-
+        return {"content": response["answer"]}
 
     async def save_clinical_record(self, session_id: str, record: ClinicalRecord):
         try:
@@ -220,7 +232,7 @@ class MedicalBotService:
             result = await self.db.clinical_records.insert_one(record_dict)
             return {"status": "success", "message": "Registro guardado exitosamente", "content": str(result.inserted_id)}
         except Exception as e:
-            print(f"Error: {e}") 
+            print(f"Error: {e}")
             return {"status": "error", "message": "Error guardando el registro"}
 
     async def get_patient_history(self, session_id: str, limit: int):
@@ -255,7 +267,8 @@ class MedicalBotService:
             dx = rec.diagnostico.condicion_principal
             gravedad = rec.diagnostico.gravedad
             evolucion = rec.diagnostico.estado_evolutivo
-            sintomas_list = rec.detalles_medicos.sintomas[:3] if rec.detalles_medicos.sintomas else ["No especificados"]
+            sintomas_list = rec.detalles_medicos.sintomas[:3] if rec.detalles_medicos.sintomas else [
+                "No especificados"]
             sintomas = ", ".join(sintomas_list)
             linea = (
                 f"- [{fecha_str}] Dx: {dx} (Gravedad: {gravedad}). "
