@@ -32,7 +32,6 @@ class _ChatTabState extends State<ChatTab> {
       context.read<MessageProvider>(),
     );
     
-    // Clear previous messages to avoid duplication or stale data
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MessageProvider>().clearMessages();
     });
