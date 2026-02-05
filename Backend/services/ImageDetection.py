@@ -1,23 +1,26 @@
 import torch
-import torch.nn as nn
 import timm
 import joblib
 from PIL import Image
 import torchvision.transforms as transforms
 import io
 from config import MODEL_PATH, LABEL_ENCODE_PATH
-import os
 from datetime import datetime
 from database.mongodb import get_db
+import cloudinary.uploader
 
-async def save_image_locally(file_bytes: bytes, filename: str, conversation_id: str) -> str:
-    images_dir = os.path.join(os.getcwd(), "images", str(conversation_id))
-    os.makedirs(images_dir, exist_ok=True)
-    image_path = os.path.join(images_dir, filename)
-    with open(image_path, "wb") as f:
-        f.write(file_bytes)
-    rel_path = os.path.relpath(image_path, os.getcwd())
-    return rel_path
+async def upload_image_to_cloudinary(file_bytes: bytes, filename: str, conversation_id: str):
+    result = cloudinary.uploader.upload(
+        file_bytes,
+        folder=f"clinical/{conversation_id}",
+        public_id=f"{datetime.utcnow().timestamp()}_{filename}",
+        resource_type="image"
+    )
+
+    return {
+        "url": result["secure_url"],
+        "public_id": result["public_id"]
+    }
 
 async def list_detections(user_id: str):
     db = get_db()
@@ -117,43 +120,3 @@ def predict_image_class(image_bytes):
         raise e
 
     
-'''
-async def calcular_gravedad_con_ia(cnn_resultado: str, sintomas: list[str]) -> str:
-    if not GROQ_API_KEY:
-        return "Desconocida (Falta API Key)"
-        
-    llm = ChatGroq(api_key=GROQ_API_KEY, model="llama-3.3-70b-versatile", temperature=0.1)
-    
-    prompt = ChatPromptTemplate.from_template("""
-        Eres un asistente médico experto. Analiza los siguientes datos:
-        1. Diagnóstico visual (CNN): {cnn_result}
-        2. Síntomas reportados por paciente: {sintomas}
-        
-        Tu tarea es determinar la GRAVEDAD del caso.
-        Reglas:
-        - Si es algo estético o leve (ej. acné simple), suele ser "Baja".
-        - Si hay dolor intenso, infección visible o sospecha oncológica, es "Alta" o "Critica".
-        
-        Responde SOLAMENTE con una de estas palabras: Baja, Media, Alta, Critica.
-    """)
-    
-    chain = prompt | llm
-    resultado = await chain.ainvoke({
-        "cnn_result": cnn_resultado,
-        "sintomas": ", ".join(sintomas)
-    })
-    
-    return resultado.content.strip() 
-    
-async def determinar_estado_evolutivo(user_id: str, zona_cuerpo: str, db) -> str:
-    ultimo_registro = await db["clinical_records"].find_one(
-        {"user_id": user_id, "detalles_medicos.zona_cuerpo": zona_cuerpo},
-        sort=[("fecha_registro", -1)] 
-    )
-    
-    if not ultimo_registro:
-        return "Nuevo"
-    
-    return "Igual"
-'''
-# El codigo comentado falta definir, ya que primero se debe probar el modelo predictivo de imagenes
