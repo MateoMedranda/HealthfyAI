@@ -7,16 +7,22 @@ from database.mongodb import connect_to_mongo, close_mongo_connection
 from services.MedicalBotService import initialize_chatbot
 from services.ImageDetection import load_vision_model
 from fastapi.middleware.cors import CORSMiddleware
+import asyncio
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    connect_to_mongo() 
-    load_vision_model()
-    print("🚀 Arrancando servidor y cargando modelos de IA...")
-    initialize_chatbot() 
-    
+    connect_to_mongo()
+    print("🚀 Servidor levantado, inicializando servicios en background...")
+
+    async def init_services():
+        load_vision_model()
+        initialize_chatbot()
+        print("✅ Modelos de IA listos")
+
+    asyncio.create_task(init_services())
+
     yield
-    
+
     print("🛑 Apagando servidor...")
     close_mongo_connection()
 
