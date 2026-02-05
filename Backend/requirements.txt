@@ -17,5 +17,6 @@ torchvision
 pillow
 timm
 boto3
-cloudinary python-multipart
+cloudinary 
+python-multipart
 huggingface_hub
