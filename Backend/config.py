@@ -12,7 +12,9 @@ LANGCHAIN_TRACING_V2 = os.getenv("LANGCHAIN_TRACING_V2")
 LANGCHAIN_ENDPOINT = os.getenv("LANGCHAIN_ENDPOINT")
 LANGCHAIN_API_KEY = os.getenv("LANGCHAIN_API_KEY")
 LANGCHAIN_PROJECT = os.getenv("LANGCHAIN_PROJECT")
-MODEL_PATH = os.getenv("MODEL_PATH")
+HF_REPO_ID = "MateoMedranda/healthfyai-convnext"
+HF_MODEL_FILENAME = "convnext_finetuned.pth"
+HF_TOKEN = os.getenv("HUGGING_FACE_TOKEN")
 LABEL_ENCODE_PATH = os.getenv("LABEL_ENCODE_PATH")
 
 cloudinary.config(

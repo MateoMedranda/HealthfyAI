@@ -4,7 +4,8 @@ import joblib
 from PIL import Image
 import torchvision.transforms as transforms
 import io
-from config import MODEL_PATH, LABEL_ENCODE_PATH
+from config import LABEL_ENCODE_PATH, HF_REPO_ID, HF_MODEL_FILENAME, HF_TOKEN
+from huggingface_hub import hf_hub_download
 from datetime import datetime
 from database.mongodb import get_db
 import cloudinary.uploader
@@ -63,8 +64,16 @@ def load_vision_model():
             num_classes=num_classes
         )
 
+        print(f"📥 Descargando modelo desde Hugging Face: {HF_REPO_ID}...")
+        model_path = hf_hub_download(
+            repo_id=HF_REPO_ID,
+            filename=HF_MODEL_FILENAME,
+            token=HF_TOKEN
+        )
+        print(f"✅ Modelo descargado en: {model_path}")
+
         model.load_state_dict(
-            torch.load(MODEL_PATH, map_location=DEVICE)
+            torch.load(model_path, map_location=DEVICE)
         )
 
         model.to(DEVICE)
@@ -85,7 +94,7 @@ def load_vision_model():
         print("✅ Modelo ConvNeXt cargado en memoria global.")
 
     except FileNotFoundError:
-        print(f"❌ ERROR: No se encontró el modelo en {MODEL_PATH}")
+        print(f"❌ ERROR: No se encontró el modelo en {HF_REPO_ID}")
     except Exception as e:
         print(f"❌ Error cargando el modelo de visión: {e}")
 
