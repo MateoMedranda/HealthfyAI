@@ -20,4 +20,3 @@ boto3
 cloudinary 
 python-multipart
 huggingface_hub
-scikit-learn==1.6.1
