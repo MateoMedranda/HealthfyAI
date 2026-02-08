@@ -15,8 +15,9 @@ async def lifespan(app: FastAPI):
     print("🚀 Servidor levantado, inicializando servicios en background...")
 
     async def init_services():
-        load_vision_model()
-        initialize_chatbot()
+        print("⏳ Iniciando carga de modelos en segundo plano...")
+        await asyncio.to_thread(load_vision_model)
+        await asyncio.to_thread(initialize_chatbot)
         print("✅ Modelos de IA listos")
 
     asyncio.create_task(init_services())
