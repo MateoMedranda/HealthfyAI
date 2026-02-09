@@ -39,6 +39,19 @@ async def get_user_conversations(user_id: str, service: MedicalBotService = Depe
         print(f"Error obteniendo conversaciones: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.delete("/conversations/{session_id}")
+async def delete_conversation_endpoint(session_id: str, service: MedicalBotService = Depends(get_medicalbot_service)):
+    try:
+        print(f"🗑️ Eliminando conversación {session_id}")
+        result = await service.delete_conversation(session_id=session_id)
+        if result:
+            return {"status": "success", "message": "Conversación eliminada"}
+        else:
+            raise HTTPException(status_code=404, detail="Conversación no encontrada")
+    except Exception as e:
+        print(f"Error eliminando conversación: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.get("/clinical-summary/{session_id}")
 async def get_clinical_summary_endpoint(session_id: str, service: MedicalBotService = Depends(get_medicalbot_service)):
     try:

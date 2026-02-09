@@ -4,6 +4,7 @@ import joblib
 from PIL import Image
 import torchvision.transforms as transforms
 import io
+import config  # Importar PRIMERO para que cloudinary esté configurado
 from config import LABEL_ENCODE_PATH, HF_REPO_ID, HF_MODEL_FILENAME, HF_TOKEN
 from huggingface_hub import hf_hub_download
 from datetime import datetime

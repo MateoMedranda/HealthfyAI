@@ -23,3 +23,8 @@ cloudinary.config(
     api_secret=os.getenv("CLOUDINARY_API_SECRET"),
     secure=True
 )
+
+print(f"☁️ Cloudinary configurado:")
+print(f"  cloud_name: {os.getenv('CLOUD_NAME')}")
+print(f"  api_key: {'✅' if os.getenv('CLOUDINARY_API_KEY') else '❌ NO CONFIGURADO'}")
+print(f"  api_secret: {'✅' if os.getenv('CLOUDINARY_API_SECRET') else '❌ NO CONFIGURADO'}")

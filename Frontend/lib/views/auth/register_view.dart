@@ -55,11 +55,8 @@ class _RegisterViewState extends State<RegisterView> {
 
   Future<void> _handleRegister() async {
     if (_formKey.currentState!.validate()) {
-      print('📋 FORM: Validación del formulario completada');
-
       // Validar que las contraseñas coincidan
       if (_passwordController.text != _confirmPasswordController.text) {
-        print('❌ FORM: Las contraseñas no coinciden');
         ErrorDialog.show(
           context,
           'Contraseñas no coinciden',
@@ -70,7 +67,6 @@ class _RegisterViewState extends State<RegisterView> {
 
       // Validar fecha de nacimiento
       if (_birthdateController.text.isEmpty) {
-        print('❌ FORM: Fecha de nacimiento vacía');
         ErrorDialog.show(
           context,
           'Fecha requerida',
@@ -78,13 +74,6 @@ class _RegisterViewState extends State<RegisterView> {
         );
         return;
       }
-
-      print('📝 FORM: Creando UserModel con los siguientes datos:');
-      print('  - Nombre: ${_nameController.text.trim()}');
-      print('  - Email: ${_emailController.text.trim()}');
-      print('  - Password: ${'*' * _passwordController.text.length}');
-      print('  - Birthdate: ${_birthdateController.text}');
-      print('  - Gender: $_selectedGender');
 
       final user = UserModel(
         nombre: _nameController.text.trim(),
@@ -94,25 +83,18 @@ class _RegisterViewState extends State<RegisterView> {
         gender: _selectedGender,
       );
 
-      print('📣 FORM: Iniciando registro en AuthController');
       final authController = context.read<AuthController>();
       final success = await authController.register(user);
 
-      print('📣 FORM: Resultado del registro - Success: $success');
-
       if (success && mounted) {
-        print('✅ FORM: Registro exitoso, navegando a home');
         Navigator.pushReplacementNamed(context, '/home');
       } else if (mounted) {
-        print('❌ FORM: Registro falló - ${authController.errorMessage}');
         ErrorDialog.show(
           context,
           'Error al Registrar',
           authController.errorMessage ?? 'Ocurrió un error inesperado',
         );
       }
-    } else {
-      print('❌ FORM: Validación del formulario falló');
     }
   }
 

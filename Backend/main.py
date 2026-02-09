@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
+import config  # Importar config PRIMERO para inicializar Cloudinary
 from routers.UserRouter import router as user_router
 from routers.MedicalBotRouter import router as medical_bot_router
 from routers.ImageDetectionRouter import router as image_detection_router

@@ -160,10 +160,16 @@ class MedicalBotService:
         )
 
     async def delete_conversation(self, session_id: str):
+        # Eliminar la conversación
         delete_conversation = await self.db["conversations"].delete_one({"session_id": session_id})
-        if delete_conversation.deleted_count == 0:
-            return {"status": "error", "message": "Conversación no encontrada"}
-        return {"status": "success", "message": "Conversación eliminada"}
+        
+        # Eliminar todos los mensajes de esta conversación
+        delete_messages = await self.db["chat_histories"].delete_many({"SessionId": session_id})
+        
+        print(f"🗑️ Conversación eliminada: {delete_conversation.deleted_count}")
+        print(f"🗑️ Mensajes eliminados: {delete_messages.deleted_count}")
+        
+        return delete_conversation.deleted_count > 0
 
     async def get_all_conversations(self, user_id: str):
         conversations = []
@@ -197,8 +203,21 @@ class MedicalBotService:
         return messages
 
     async def get_user_name(self, user_id: str):
-        user = await self.db.usuarios.find_one({"_id": ObjectId(user_id)})
-        return user["nombre"]
+        # user_id puede ser un email o un ObjectId
+        try:
+            user = await self.db.usuarios.find_one({"_id": ObjectId(user_id)})
+            if user:
+                return user.get("nombre", "Usuario")
+        except:
+            pass
+        
+        # Si no es un ObjectId válido, buscar por email
+        user = await self.db.usuarios.find_one({"email": user_id})
+        if user:
+            return user.get("nombre", "Usuario")
+        
+        # Si no encuentra, retornar el email como nombre
+        return user_id.split('@')[0] if '@' in user_id else "Usuario"
 
     async def chat_with_bot(self, message: str, session_id: str, user_id: str):
         global conversational_rag_chain

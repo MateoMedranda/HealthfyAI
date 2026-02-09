@@ -76,7 +76,7 @@ class _LoginViewState extends State<LoginView> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withOpacity(0.3),
+                            color: AppColors.primary.withAlpha(77),
                             blurRadius: 20,
                             offset: const Offset(0, 10),
                           ),
@@ -189,7 +189,7 @@ class _LoginViewState extends State<LoginView> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          // TODO: Implementar recuperación de contraseña
+                          // Funcionalidad pendiente
                         },
                         child: const Text(
                           '¿Olvidaste tu contraseña?',

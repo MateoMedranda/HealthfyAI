@@ -18,7 +18,6 @@ class MessageController {
     if (message == '') return;
 
     provider.setLoading(true);
-    final ctx = context;
 
     try {
       final Message botResponse = await service.sendMessage(
@@ -30,14 +29,18 @@ class MessageController {
       if (botResponse.content != '') {
         provider.addMessage(botResponse);
       } else {
-        ScaffoldMessenger.of(ctx).showSnackBar(
-          const SnackBar(content: Text('Error al obtener respuesta del bot')),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error al obtener respuesta del bot')),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        ctx,
-      ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (context.mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     } finally {
       provider.setLoading(false);
     }

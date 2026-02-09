@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../config/theme/app_colors.dart';
 import '../../../controllers/message_controller.dart';
+import '../../../controllers/auth_controller.dart';
 import '../../../providers/message_provider.dart';
+import '../../../providers/photo_provider.dart';
 import '../../../models/message_model.dart';
 import '../../../widgets/bubble_chat.dart';
 import '../../../widgets/bot_response.dart';
@@ -20,26 +22,37 @@ class _ChatTabState extends State<ChatTab> {
   final ScrollController _scrollController = ScrollController();
 
   late final MessageController _messageController;
-
-  static const sessionId = '123';
-  static const userId = '695e76420edd14c1908c0589';
+  late String sessionId;
+  late String userId;
 
   @override
   void initState() {
     super.initState();
 
-    _messageController = MessageController(
-      context.read<MessageProvider>(),
-    );
-    
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MessageProvider>().clearMessages();
-    });
+    _messageController = MessageController(context.read<MessageProvider>());
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _messageController.obtenerMensajes(
-        sessionId: sessionId,
-      );
+      // Obtener sessionId del PhotoProvider
+      final photoProvider = context.read<PhotoProvider>();
+      final authController = context.read<AuthController>();
+
+      sessionId = photoProvider.conversationId ?? 'default_session';
+      userId = authController.currentUser?.email ?? 'unknown';
+
+      context.read<MessageProvider>().clearMessages();
+
+      _messageController.obtenerMensajes(sessionId: sessionId);
+
+      // Verificar si hay un análisis nuevo y no se ha enviado el mensaje inicial
+      if (photoProvider.diagnosis != null &&
+          !photoProvider.initialMessageSent) {
+        // Esperar a que se carguen los mensajes históricos
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (mounted && context.read<PhotoProvider>().diagnosis != null) {
+            _enviarMensajeInicial(context.read<PhotoProvider>());
+          }
+        });
+      }
     });
   }
 
@@ -62,6 +75,33 @@ class _ChatTabState extends State<ChatTab> {
     });
   }
 
+  void _enviarMensajeInicial(PhotoProvider photoProvider) {
+    final diagnosis = photoProvider.diagnosis ?? 'Análisis completado';
+    final confidence = photoProvider.confidence ?? 0.0;
+
+    // Crear mensaje inicial
+    final initialMessage =
+        '📋 He detectado: $diagnosis\n'
+        '✅ Confianza: ${(confidence * 100).toStringAsFixed(2)}%\n\n'
+        '¿Cuáles son tus síntomas actuales?';
+
+    // Agregar mensaje del usuario
+    context.read<MessageProvider>().addMessage(
+      Message(type: 'user', content: initialMessage),
+    );
+
+    // Marcar que ya se envió el mensaje inicial
+    photoProvider.setInitialMessageSent(true);
+
+    // Enviar al backend y obtener respuesta
+    _messageController.enviarMensaje(
+      context: context,
+      message: initialMessage,
+      sessionId: sessionId,
+      userId: userId,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<MessageProvider>();
@@ -74,7 +114,8 @@ class _ChatTabState extends State<ChatTab> {
           child: ListView.builder(
             controller: _scrollController,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-            itemCount: provider.messages.length + 1 + (provider.isLoading ? 1 : 0),
+            itemCount:
+                provider.messages.length + 1 + (provider.isLoading ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == 0) {
                 return Center(
@@ -95,7 +136,7 @@ class _ChatTabState extends State<ChatTab> {
                 );
               }
               if (provider.isLoading && index == provider.messages.length + 1) {
-                 return const Align(
+                return const Align(
                   alignment: Alignment.centerLeft,
                   child: TypingIndicator(),
                 );
@@ -124,10 +165,7 @@ class _ChatTabState extends State<ChatTab> {
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
-              BoxShadow(
-                blurRadius: 8,
-                color: Colors.black.withOpacity(0.05),
-              ),
+              BoxShadow(blurRadius: 8, color: Colors.black.withAlpha(13)),
             ],
           ),
           child: Row(

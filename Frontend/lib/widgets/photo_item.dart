@@ -10,8 +10,8 @@ class BigPhotoBox extends StatelessWidget {
     final photo = context.watch<PhotoProvider>().foto;
 
     return Container(
-      width: MediaQuery.of(context).size.width * 0.85,
-      height: 350,
+      width: MediaQuery.of(context).size.width * 0.70,
+      height: 250,
       decoration: BoxDecoration(
         color: Colors.grey.shade300,
         borderRadius: BorderRadius.circular(16),
