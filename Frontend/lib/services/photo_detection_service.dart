@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/photo_model.dart';
 import '../config/constants.dart';
+import 'api_service.dart';
 
 class PhotoDetectionService {
   Future<Photo?> detectPhoto({
@@ -15,6 +16,9 @@ class PhotoDetectionService {
       );
 
       final request = http.MultipartRequest('POST', uri);
+      if (ApiService.authToken != null) {
+        request.headers['Authorization'] = 'Bearer ${ApiService.authToken}';
+      }
       request.files.add(await http.MultipartFile.fromPath('file', filePath));
 
       final streamedResponse = await request.send();

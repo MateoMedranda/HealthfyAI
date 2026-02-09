@@ -6,6 +6,16 @@ import '../config/constants.dart';
 
 class ApiService {
   static const Duration _timeout = Duration(seconds: 60);
+  static String? authToken;
+
+  Map<String, String> get _headers {
+    final headers = {'Content-Type': 'application/json'};
+    if (authToken != null) {
+      headers['Authorization'] = 'Bearer $authToken';
+    }
+    return headers;
+  }
+
   // Registrar usuario
   Future<Map<String, dynamic>> register(UserModel user) async {
     try {
@@ -14,7 +24,7 @@ class ApiService {
       final response = await http
           .post(
             Uri.parse('${AppConstants.usersEndpoint}/'),
-            headers: {'Content-Type': 'application/json'},
+            headers: _headers,
             body: jsonEncode(jsonData),
           )
           .timeout(_timeout);
@@ -76,7 +86,11 @@ class ApiService {
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         if (responseData['status'] == 'success') {
-          return {'success': true, 'data': responseData['user_data']};
+          return {
+            'success': true,
+            'data': responseData['user_data'],
+            'token': responseData['access_token'],
+          };
         } else {
           return {'success': false, 'message': responseData['message']};
         }
@@ -112,7 +126,10 @@ class ApiService {
   Future<UserModel?> getUser(String email) async {
     try {
       final response = await http
-          .get(Uri.parse('${AppConstants.usersEndpoint}/$email'))
+          .get(
+            Uri.parse('${AppConstants.usersEndpoint}/$email'),
+            headers: _headers,
+          )
           .timeout(_timeout);
 
       if (response.statusCode == 200) {

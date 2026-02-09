@@ -18,6 +18,22 @@ async def login(login_data: LoginRequest, response: Response, service: UserServi
     result = await service.login_user(login_data.email, login_data.password)
     if (result["status"] == "error"):
         response.status_code = status.HTTP_401_UNAUTHORIZED
+        return result
+    
+    # Generar token JWT
+    from utils.security import create_access_token
+    from datetime import timedelta
+    from config import ACCESS_TOKEN_EXPIRE_MINUTES
+    
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": result["user_data"]["email"]}, expires_delta=access_token_expires
+    )
+    
+    # Incluir token en la respuesta
+    result["access_token"] = access_token
+    result["token_type"] = "bearer"
+    
     return result
 
 @router.post("/")

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/message_model.dart';
 import '../config/constants.dart';
+import 'api_service.dart';
 
 class MessageService {
   Future<List<Message>> getChatMessages({required String sessionId}) async {
@@ -10,10 +11,12 @@ class MessageService {
         '${AppConstants.medicalBotEndpoint}/chat-messages/$sessionId',
       );
 
-      final response = await http.get(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-      );
+      final headers = {'Content-Type': 'application/json'};
+      if (ApiService.authToken != null) {
+        headers['Authorization'] = 'Bearer ${ApiService.authToken}';
+      }
+
+      final response = await http.get(uri, headers: headers);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -41,9 +44,14 @@ class MessageService {
         '${AppConstants.medicalBotEndpoint}/chat/$sessionId?user_id=$userId',
       );
 
+      final headers = {'Content-Type': 'application/json'};
+      if (ApiService.authToken != null) {
+        headers['Authorization'] = 'Bearer ${ApiService.authToken}';
+      }
+
       final response = await http.post(
         uri,
-        headers: {'Content-Type': 'application/json'},
+        headers: headers,
         body: jsonEncode({'message': message}),
       );
 

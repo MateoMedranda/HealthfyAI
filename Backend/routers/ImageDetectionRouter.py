@@ -18,8 +18,12 @@ def get_medicalbot_service(db=Depends(get_db)):
     return MedicalBotService(db)
 
 
+from utils.security import get_current_user
+
 @router.post("/detect-image")
-async def detect_image(file: UploadFile = File(...), user_id: str = '', conversation_id: str = '', service: MedicalBotService = Depends(get_medicalbot_service)):
+async def detect_image(file: UploadFile = File(...), user_id: str = '', conversation_id: str = '', 
+                       service: MedicalBotService = Depends(get_medicalbot_service),
+                       current_user: dict = Depends(get_current_user)):
     try:
         image_bytes = await file.read()
         result = predict_image_class(image_bytes)

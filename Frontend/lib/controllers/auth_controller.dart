@@ -20,16 +20,42 @@ class AuthController with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final result = await _apiService.login(email, password);
+    try {
+      final result = await _apiService.login(email, password);
 
-    if (result['success']) {
-      _currentUser = UserModel.fromJson(result['data']);
-      await _saveSession(email);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } else {
-      _errorMessage = result['message'];
+      if (result['success']) {
+        final userData = result['data'];
+        final token = result['token'];
+
+        if (userData != null) {
+          _currentUser = UserModel.fromJson(userData);
+        }
+
+        if (token != null) {
+          await _saveSession(email, token);
+          // Configurar token en ApiService para futuras peticiones
+          ApiService.authToken = token;
+        }
+
+        // Si no vino el user data pero si el token, intentar obtener perfil
+        if (_currentUser == null && token != null) {
+          final user = await _apiService.getUser(email);
+          if (user != null) {
+            _currentUser = user;
+          }
+        }
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = result['message'];
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Error de conexión: $e';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -42,16 +68,29 @@ class AuthController with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
 
-    final result = await _apiService.register(user);
+    try {
+      final result = await _apiService.register(user);
 
-    if (result['success']) {
-      _currentUser = UserModel.fromJson(result['data']);
-      await _saveSession(user.email);
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } else {
-      _errorMessage = result['message'];
+      if (result['success']) {
+        _currentUser = UserModel.fromJson(result['data']);
+        // Nota: El registro usualmente no devuelve token inmediato en este backend,
+        // pero si lo hiciera deberíamos guardarlo.
+        // Por ahora asumimos que el usuario debe loguearse o el backend se updatea para devolver token.
+        // Si el backend no devuelve token en register, el usuario tendrá que hacer login.
+        // Para mantener consistencia con flujo actual, guardamos email pero sin token (o login automático)
+        // Idealmente: Auto-login tras registro.
+
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = result['message'];
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Error: $e';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -61,28 +100,44 @@ class AuthController with ChangeNotifier {
   // Logout
   Future<void> logout() async {
     _currentUser = null;
+    ApiService.authToken = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_email');
+    await prefs.remove('auth_token');
     notifyListeners();
   }
 
   // Guardar sesión en SharedPreferences
-  Future<void> _saveSession(String email) async {
+  Future<void> _saveSession(String email, String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_email', email);
+    await prefs.setString('auth_token', token);
   }
 
   // Restaurar sesión
   Future<void> restoreSession() async {
-    final prefs = await SharedPreferences.getInstance();
-    final email = prefs.getString('user_email');
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final email = prefs.getString('user_email');
+      final token = prefs.getString('auth_token');
 
-    if (email != null) {
-      final user = await _apiService.getUser(email);
-      if (user != null) {
-        _currentUser = user;
-        notifyListeners();
+      if (email != null && token != null) {
+        // Restaurar token en memoria
+        ApiService.authToken = token;
+
+        // Verificar validez del token obteniendo perfil
+        final user = await _apiService.getUser(email);
+        if (user != null) {
+          _currentUser = user;
+          notifyListeners();
+        } else {
+          // Si falla obtener usuario (ej. token expirado), cerrar sesión limpia
+          await logout();
+        }
       }
+    } catch (e) {
+      // Error silencioso en restore
+      await logout();
     }
   }
 

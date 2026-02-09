@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/constants.dart';
+import 'api_service.dart';
 
 class ChatHistoryService {
   Future<List<ChatHistory>> obtenerHistorial(String userId) async {
@@ -9,7 +10,14 @@ class ChatHistoryService {
         '${AppConstants.baseUrl}/medical-bot/conversations/$userId',
       );
 
-      final response = await http.get(uri).timeout(const Duration(seconds: 30));
+      final headers = {'Content-Type': 'application/json'};
+      if (ApiService.authToken != null) {
+        headers['Authorization'] = 'Bearer ${ApiService.authToken}';
+      }
+
+      final response = await http
+          .get(uri, headers: headers)
+          .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -46,8 +54,13 @@ class ChatHistoryService {
         '${AppConstants.baseUrl}/medical-bot/conversations/$conversationId',
       );
 
+      final headers = {'Content-Type': 'application/json'};
+      if (ApiService.authToken != null) {
+        headers['Authorization'] = 'Bearer ${ApiService.authToken}';
+      }
+
       final response = await http
-          .delete(uri)
+          .delete(uri, headers: headers)
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {

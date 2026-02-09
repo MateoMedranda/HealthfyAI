@@ -17,6 +17,11 @@ HF_MODEL_FILENAME = "convnext_finetuned.pth"
 HF_TOKEN = os.getenv("HUGGING_FACE_TOKEN")
 LABEL_ENCODE_PATH = os.getenv("LABEL_ENCODE_PATH")
 
+# JWT Configuration
+SECRET_KEY = os.getenv("SECRET_KEY", "tu_clave_secreta_super_segura_cambiala_en_prod")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 1 semana
+
 cloudinary.config(
     cloud_name=os.getenv("CLOUD_NAME"),
     api_key=os.getenv("CLOUDINARY_API_KEY"),
