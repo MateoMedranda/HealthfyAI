@@ -4,14 +4,14 @@ from typing import Optional
 class User(BaseModel):
     id: Optional[str] = Field(None, alias="_id")
     
-    # Datos de la cuenta
+    # Datos requeridos de la cuenta
     nombre: str
     email: str
     password: str
-    birthdate: Optional[str] = None
-    gender: Optional[str] = None
+    birthdate: str  # Requerido
+    gender: str     # Requerido
 
-    # Datos como paciente Opcionales, se pueden agregar después
+    # Datos opcionales del paciente
     weight: Optional[float] = None
     height: Optional[float] = None
     medical_conditions: Optional[str] = None

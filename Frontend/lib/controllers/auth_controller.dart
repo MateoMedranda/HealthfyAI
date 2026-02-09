@@ -16,19 +16,26 @@ class AuthController with ChangeNotifier {
 
   // Login
   Future<bool> login(String email, String password) async {
+    print('🔄 LOGIN: Iniciando login para $email...');
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
+    print('🔄 LOGIN: Llamando ApiService.login()');
     final result = await _apiService.login(email, password);
 
+    print('🔄 LOGIN: Respuesta recibida de ApiService');
+    print('🔄 Success: ${result['success']}, Message: ${result['message']}');
+
     if (result['success']) {
+      print('✅ LOGIN: Éxito - Usuario autenticado');
       _currentUser = UserModel.fromJson(result['data']);
       await _saveSession(email);
       _isLoading = false;
       notifyListeners();
       return true;
     } else {
+      print('❌ LOGIN: Fallo - ${result['message']}');
       _errorMessage = result['message'];
       _isLoading = false;
       notifyListeners();
@@ -38,19 +45,26 @@ class AuthController with ChangeNotifier {
 
   // Register
   Future<bool> register(UserModel user) async {
+    print('🔄 REGISTRO: Iniciando registro del usuario ${user.email}...');
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
+    print('🔄 REGISTRO: Llamando ApiService.register()');
     final result = await _apiService.register(user);
 
+    print('🔄 REGISTRO: Respuesta recibida de ApiService');
+    print('🔄 Success: ${result['success']}, Message: ${result['message']}');
+
     if (result['success']) {
+      print('✅ REGISTRO: Éxito - Usuario registrado exitosamente');
       _currentUser = UserModel.fromJson(result['data']);
       await _saveSession(user.email);
       _isLoading = false;
       notifyListeners();
       return true;
     } else {
+      print('❌ REGISTRO: Fallo - ${result['message']}');
       _errorMessage = result['message'];
       _isLoading = false;
       notifyListeners();

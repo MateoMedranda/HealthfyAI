@@ -45,3 +45,12 @@ app.include_router(image_detection_router)
 def read_root():
     return {"message": "Healthfy API is running 🤖"}
 
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info"
+    )

@@ -9,64 +9,108 @@ class UserService:
 
     async def login_user(self, email: str, password: str):
         """Verifica las credenciales del usuario"""
-        user_data = await self.db.usuarios.find_one({"email": email})
-        if not user_data:
-            return {"status": "error", "message": "Usuario no encontrado"}
-        
-        # Verificar contraseña
-        if not verify_password(password, user_data["password"]):
-            return {"status": "error", "message": "Contraseña incorrecta"}
-        
-        # Convertir ObjectId a string
-        user_data["_id"] = str(user_data["_id"])
-        return {"status": "success", "message": "Login exitoso", "user_data": User(**user_data)}
-
-    async def create_user(self,usuario: User):
-        # Carga de datos del usuario para crear cuenta
-        user_dict = usuario.model_dump(by_alias=True, exclude_unset=True, exclude_none=True)
-
-        # 1. Verificar que el email no exista ya en la base de datos
-        existing_user = await self.db.usuarios.find_one({"email": user_dict["email"]})
-        if existing_user:
-            return {"status": "error","message": "El correo ya se encuentra registrado"}
+        try:
+            user_data = await self.db.usuarios.find_one({"email": email})
+            if not user_data:
+                return {"status": "error", "message": "Usuario no encontrado"}
             
-        # 2. Validar que el password, nombre, correo, fecha nacimiento y genero no estén vacíos
-        if(user_dict["password"] == "" or user_dict["nombre"] == "" or user_dict["email"] == "" or user_dict["birthdate"] == "" or user_dict["gender"] == ""):
-            return {"status": "error", "message": "No pueden quedar vacios los campos nombre, correo, contraseña, fecha de nacimiento y género"}
-
-        # 3. Validar que el password tenga al menos 6 caracteres, un numero y un caracter especial
-        if(len(user_dict["password"]) < 6 or not any(char.isdigit() for char in user_dict["password"]) or not any(not char.isalnum() for char in user_dict["password"])):
-            return {"status": "error", "message": "La contraseña debe tener al menos 6 caracteres, un número y un caracter especial"}
-
-        # Hash de la contraseña antes de guardar
-        user_dict["password"] = hash_password(user_dict["password"])
-        result = await self.db.usuarios.insert_one(user_dict)
-        user_dict["_id"] = str(result.inserted_id)
-
-        return {"status": "success", "message": "Usuario creado exitosamente", "user_data": user_dict}
-
-    async def get_user_by_email(self, email: str):
-        user_data = await self.db.usuarios.find_one({"email": email})
-        if user_data:
+            # Verificar contraseña
+            if not verify_password(password, user_data["password"]):
+                return {"status": "error", "message": "Contraseña incorrecta"}
+            
             # Convertir ObjectId a string
             user_data["_id"] = str(user_data["_id"])
-            return {"status": "success", "message": "Usuario encontrado", "user_data": User(**user_data)}
-        return {"status": "error", "message": "Usuario no encontrado"}
+            # Retornar dict, no modelo Pydantic
+            return {"status": "success", "message": "Login exitoso", "user_data": user_data}
+        except Exception as e:
+            return {"status": "error", "message": f"Error en servidor: {str(e)}"}
+
+    async def create_user(self, usuario: User):
+        # Carga de datos del usuario para crear cuenta
+        try:
+            user_dict = usuario.model_dump(exclude_none=True)
+
+            print(f"📝 Registrando usuario: {user_dict.get('email')}")
+            print(f"📋 Datos recibidos: {user_dict}")
+
+            # 1. Verificar que el email no exista ya en la base de datos
+            existing_user = await self.db.usuarios.find_one({"email": user_dict["email"]})
+            if existing_user:
+                print(f"❌ Email duplicado: {user_dict['email']}")
+                return {"status": "error","message": "El correo ya se encuentra registrado"}
+                
+            # 2. Validar que todos los campos requeridos están presentes
+            if not all([user_dict.get("nombre"), user_dict.get("email"), 
+                       user_dict.get("password"), user_dict.get("birthdate"), 
+                       user_dict.get("gender")]):
+                return {"status": "error", "message": "Faltan campos requeridos"}
+
+            # 3. Validar que el password tenga al menos 6 caracteres, un numero y un caracter especial
+            pwd = user_dict.get("password", "")
+            if len(pwd) < 6:
+                return {"status": "error", "message": "La contraseña debe tener al menos 6 caracteres"}
+            if not any(char.isdigit() for char in pwd):
+                return {"status": "error", "message": "La contraseña debe contener al menos un número"}
+            if not any(not char.isalnum() for char in pwd):
+                return {"status": "error", "message": "La contraseña debe contener al menos un carácter especial"}
+
+            # Hash de la contraseña antes de guardar
+            user_dict["password"] = hash_password(user_dict["password"])
+            result = await self.db.usuarios.insert_one(user_dict)
+            user_dict["_id"] = str(result.inserted_id)
+
+            print(f"✅ Usuario creado exitosamente: {user_dict['email']}")
+
+            return {"status": "success", "message": "Usuario creado exitosamente", "user_data": user_dict}
+        except Exception as e:
+            return {"status": "error", "message": f"Error en servidor: {str(e)}"}
+
+    async def get_user_by_email(self, email: str):
+        try:
+            user_data = await self.db.usuarios.find_one({"email": email})
+            if user_data:
+                # Convertir ObjectId a string
+                user_data["_id"] = str(user_data["_id"])
+                return {"status": "success", "message": "Usuario encontrado", "user_data": user_data}
+            return {"status": "error", "message": "Usuario no encontrado"}
+        except Exception as e:
+            return {"status": "error", "message": f"Error en servidor: {str(e)}"}
 
     async def update_user(self, email: str, usuario: User):
         # Carga de datos del usuario para actualizar cuenta
-        user_dict = usuario.model_dump(by_alias=True, exclude_unset=True, exclude_none=True)
+        try:
+            user_dict = usuario.model_dump(exclude_none=True)
 
-        # 1. Verificar que el email no exista ya en la base de datos
-        existing_user = await self.db.usuarios.find_one({"email": user_dict["email"]})
-        if existing_user:
-            return {"status": "error","message": "El correo ya se encuentra registrado"}
+            print(f"🔄 Actualizando usuario: {email}")
+            print(f"📋 Datos a actualizar: {user_dict}")
 
-        await self.db.usuarios.update_one({"email": email}, {"$set": user_dict})
-        updated_user_data = await self.db.usuarios.find_one({"email": email})
-        # Convertir ObjectId a string
-        updated_user_data["_id"] = str(updated_user_data["_id"])
-        return {"status": "success", "message": "Usuario actualizado exitosamente", "user_data": User(**updated_user_data)}
+            # 1. Verificar que el email no exista ya en la base de datos (excepto el usuario actual)
+            if user_dict.get("email") and user_dict.get("email") != email:
+                existing_user = await self.db.usuarios.find_one({"email": user_dict.get("email")})
+                if existing_user:
+                    print(f"❌ Email duplicado: {user_dict['email']}")
+                    return {"status": "error","message": "El correo ya se encuentra registrado"}
+
+            # 2. Si la contraseña se está actualizando, validarla y hashearla
+            if user_dict.get("password"):
+                pwd = user_dict.get("password", "")
+                if len(pwd) < 6:
+                    return {"status": "error", "message": "La contraseña debe tener al menos 6 caracteres"}
+                if not any(char.isdigit() for char in pwd):
+                    return {"status": "error", "message": "La contraseña debe contener al menos un número"}
+                if not any(not char.isalnum() for char in pwd):
+                    return {"status": "error", "message": "La contraseña debe contener al menos un carácter especial"}
+                user_dict["password"] = hash_password(user_dict["password"])
+
+            await self.db.usuarios.update_one({"email": email}, {"$set": user_dict})
+            updated_user_data = await self.db.usuarios.find_one({"email": email})
+            # Convertir ObjectId a string
+            updated_user_data["_id"] = str(updated_user_data["_id"])
+            
+            print(f"✅ Usuario actualizado exitosamente: {email}")
+            return {"status": "success", "message": "Usuario actualizado exitosamente", "user_data": updated_user_data}
+        except Exception as e:
+            return {"status": "error", "message": f"Error en servidor: {str(e)}"}
 
     async def delete_user(self, email: str):
         result = await self.db.usuarios.delete_one({"email": email})
