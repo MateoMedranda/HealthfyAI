@@ -146,4 +146,36 @@ class AuthController with ChangeNotifier {
     _errorMessage = null;
     notifyListeners();
   }
+
+  // Forgot Password
+  Future<bool> forgotPassword(String email) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final result = await _apiService.forgotPassword(email);
+
+    _isLoading = false;
+    if (!result['success']) {
+      _errorMessage = result['message'];
+    }
+    notifyListeners();
+    return result['success'];
+  }
+
+  // Reset Password
+  Future<bool> resetPassword(String token, String newPassword) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    final result = await _apiService.resetPassword(token, newPassword);
+
+    _isLoading = false;
+    if (!result['success']) {
+      _errorMessage = result['message'];
+    }
+    notifyListeners();
+    return result['success'];
+  }
 }

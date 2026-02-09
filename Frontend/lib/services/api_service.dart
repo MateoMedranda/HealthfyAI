@@ -144,4 +144,58 @@ class ApiService {
       return null;
     }
   }
+
+  // Recuperar contraseña
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${AppConstants.usersEndpoint}/forgot-password'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'email': email}),
+          )
+          .timeout(_timeout);
+
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': responseData['message']};
+      } else {
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Error al procesar solicitud',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error inesperado: ${e.toString()}'};
+    }
+  }
+
+  // Restablecer contraseña
+  Future<Map<String, dynamic>> resetPassword(
+    String token,
+    String newPassword,
+  ) async {
+    try {
+      final response = await http
+          .post(
+            Uri.parse('${AppConstants.usersEndpoint}/reset-password'),
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({'token': token, 'new_password': newPassword}),
+          )
+          .timeout(_timeout);
+
+      final responseData = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': responseData['message']};
+      } else {
+        return {
+          'success': false,
+          'message':
+              responseData['message'] ?? 'Error al restablecer contraseña',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error inesperado: ${e.toString()}'};
+    }
+  }
 }

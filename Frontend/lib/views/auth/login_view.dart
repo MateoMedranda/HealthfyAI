@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../config/theme/app_colors.dart';
 import '../../config/theme/app_text_styles.dart';
 import '../../controllers/auth_controller.dart';
+import '../../providers/theme_provider.dart';
 import '../../widgets/common/custom_button.dart';
 import '../../widgets/common/custom_text_field.dart';
 import '../../widgets/common/error_dialog.dart';
@@ -51,8 +52,27 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     final authController = context.watch<AuthController>();
+    final themeProvider = context.watch<ThemeProvider>();
 
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: Icon(
+              themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+              color: themeProvider.isDarkMode
+                  ? AppColors.white
+                  : AppColors.primary,
+            ),
+            onPressed: () {
+              themeProvider.toggleTheme(!themeProvider.isDarkMode);
+            },
+          ),
+        ],
+      ),
+      extendBodyBehindAppBar: true,
       body: WaveBackground(
         child: SafeArea(
           child: Center(
@@ -64,32 +84,20 @@ class _LoginViewState extends State<LoginView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     // Logo mejorado
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primary, AppColors.primaryDark],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withAlpha(77),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.local_hospital_rounded,
-                          size: 50,
-                          color: AppColors.white,
-                        ),
+                    Image.asset(
+                      'assets/images/bot_logo.png',
+                      width: 120,
+                      height: 120,
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(
+                        Icons.local_hospital_rounded,
+                        size: 50,
+                        color: AppColors.primary,
                       ),
                     ),
+                    const SizedBox(height: 20),
+
+                    // ... (rest of the code)
                     const SizedBox(height: 20),
                     Text(
                       'HealthfyAI',
@@ -104,6 +112,7 @@ class _LoginViewState extends State<LoginView> {
                       style: AppTextStyles.bodyMedium.copyWith(
                         color: AppColors.textSecondary,
                       ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 48),
 
@@ -189,7 +198,7 @@ class _LoginViewState extends State<LoginView> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () {
-                          // Funcionalidad pendiente
+                          Navigator.pushNamed(context, '/forgot_password');
                         },
                         child: const Text(
                           '¿Olvidaste tu contraseña?',

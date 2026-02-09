@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../config/theme/app_colors.dart';
+import 'package:provider/provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../widgets/chat_history_drawer.dart';
 import 'tabs/dashboard_tab.dart';
 import 'tabs/chat_tab.dart';
@@ -39,15 +41,28 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _currentIndex == 1
-          ? null
-          : AppBar(
-              title: Text(_titles[_currentIndex]),
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.white,
-              centerTitle: true,
-              elevation: 0,
-            ),
+      appBar: AppBar(
+        title: Text(_titles[_currentIndex]),
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
+        centerTitle: true,
+        elevation: 0,
+        actions: [
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return IconButton(
+                icon: Icon(
+                  themeProvider.isDarkMode ? Icons.light_mode : Icons.dark_mode,
+                  color: AppColors.white,
+                ),
+                onPressed: () {
+                  themeProvider.toggleTheme(!themeProvider.isDarkMode);
+                },
+              );
+            },
+          ),
+        ],
+      ),
       drawer: const ScanHistoryDrawer(),
       body: _tabs[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(

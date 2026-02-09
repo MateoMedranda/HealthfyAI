@@ -9,6 +9,8 @@ import 'routes/app_routes.dart';
 import 'views/auth/login_view.dart';
 import 'views/home/home_view.dart';
 
+import 'providers/theme_provider.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -25,13 +27,16 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => PhotoProvider()),
         ChangeNotifierProvider(create: (_) => MessageProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: Consumer<AuthController>(
-        builder: (context, authController, _) {
+      child: Consumer2<AuthController, ThemeProvider>(
+        builder: (context, authController, themeProvider, _) {
           return MaterialApp(
             title: 'HealthfyAI',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.themeMode,
             home: authController.isLoggedIn
                 ? const HomeView()
                 : const LoginView(),
