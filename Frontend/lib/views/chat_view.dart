@@ -103,7 +103,7 @@ class _ChatViewState extends State<ChatView> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Consulta Médica'),
+        title: const Text('Asistente Médico'),
         backgroundColor: AppColors.primary,
         foregroundColor: AppColors.white,
         centerTitle: true,
@@ -124,12 +124,12 @@ class _ChatViewState extends State<ChatView> {
                       padding: const EdgeInsets.only(bottom: 16),
                       child: Image.asset(
                         'assets/images/bot_logo.png',
-                        width: 80,
-                        height: 80,
+                        width: 120,
+                        height: 120,
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Icon(
+                        errorBuilder: (_, __, ___) => const Icon(
                           Icons.auto_awesome,
-                          size: 32,
+                          size: 50,
                           color: AppColors.primary,
                         ),
                       ),
@@ -147,12 +147,12 @@ class _ChatViewState extends State<ChatView> {
                 final message = provider.messages[index - 1];
 
                 if (message.type == 'ai') {
-                  return BotResponse(text: message.content);
+                  return BotResponse(text: message.content ?? '');
                 } else {
                   return Align(
                     alignment: Alignment.centerRight,
                     child: BubbleChat(
-                      text: message.content,
+                      text: message.content ?? '',
                       color: AppColors.primaryDark,
                       textColor: AppColors.white,
                     ),

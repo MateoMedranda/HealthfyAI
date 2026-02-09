@@ -4,9 +4,11 @@ import 'package:provider/provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../widgets/chat_history_drawer.dart';
 import 'tabs/dashboard_tab.dart';
-import 'tabs/chat_tab.dart';
+import 'tabs/diagnostics_tab.dart';
 import 'tabs/scan_tab.dart';
 import 'tabs/profile_tab.dart';
+import '../chat_view.dart';
+import '../../controllers/auth_controller.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -33,7 +35,7 @@ class _HomeViewState extends State<HomeView> {
     _tabs = [
       const DashboardTab(),
       const ScanTab(),
-      const ChatTab(),
+      const DiagnosticsTab(),
       const ProfileTab(),
     ];
   }
@@ -65,6 +67,27 @@ class _HomeViewState extends State<HomeView> {
       ),
       drawer: const ScanHistoryDrawer(),
       body: _tabs[_currentIndex],
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // Lógica para abrir chat independiente
+          final authController = context.read<AuthController>();
+          final userId = authController.currentUser?.email ?? 'unknown';
+          // Usamos 'general_chat' o similar como sessionId para conversaciones libres
+          const sessionId = 'general_chat';
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatView(
+                sessionId: sessionId,
+                userId: userId, // Necesitarás pasar userId
+              ),
+            ),
+          );
+        },
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.chat_bubble, color: Colors.white),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
@@ -84,7 +107,7 @@ class _HomeViewState extends State<HomeView> {
             label: 'Escanear',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat_bubble_outline),
+            icon: Icon(Icons.history), // Icono más apropiado para historial
             label: 'Diagnósticos',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Perfil'),
