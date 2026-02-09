@@ -10,6 +10,13 @@ class LoginRequest(BaseModel):
     email: str
     password: str
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
 def get_user_service(db = Depends(get_db)):
     return UserService(db)
 
@@ -64,3 +71,14 @@ async def update(email: str, usuario: User, response: Response, service: UserSer
 @router.delete("/{email}")
 async def delete(email: str, service: UserService = Depends(get_user_service)):
     return await service.delete_user(email)
+
+@router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest, service: UserService = Depends(get_user_service)):
+    return await service.forgot_password(request.email)
+
+@router.post("/reset-password")
+async def reset_password(request: ResetPasswordRequest, response: Response, service: UserService = Depends(get_user_service)):
+    result = await service.reset_password(request.token, request.new_password)
+    if result["status"] == "error":
+        response.status_code = status.HTTP_400_BAD_REQUEST
+    return result

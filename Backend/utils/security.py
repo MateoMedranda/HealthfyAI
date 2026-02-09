@@ -38,3 +38,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         return {"email": email}
     except JWTError:
         raise credentials_exception
+
+def verify_token_payload(token: str):
+    """
+    Verifica un token y devuelve el payload.
+    No depende de FastAPI OAuth2, útil para tokens pasados en body (reset password).
+    """
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload
+    except JWTError:
+        return None

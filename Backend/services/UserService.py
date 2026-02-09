@@ -125,3 +125,56 @@ class UserService:
             users.append(User(**user_data))
         return users
 
+        return users
+
+    async def forgot_password(self, email: str):
+        try:
+            user_data = await self.db.usuarios.find_one({"email": email})
+            if not user_data:
+                # Por seguridad, no revelar si el email existe o no
+                return {"status": "success", "message": "Si el correo está registrado, recibirás un enlace."}
+            
+            from datetime import timedelta
+            from utils.security import create_access_token
+            from utils.email_utils import send_password_reset_email
+            
+            # Token válido por 15 minutos
+            reset_token = create_access_token(
+                data={"sub": email, "type": "reset"},
+                expires_delta=timedelta(minutes=15)
+            )
+            
+            # Enviar correo
+            send_password_reset_email(email, reset_token)
+            
+            return {"status": "success", "message": "Si el correo está registrado, recibirás un enlace."}
+        except Exception as e:
+            print(f"Error en forgot_password: {e}")
+            return {"status": "error", "message": f"Error en servidor: {str(e)}"}
+
+    async def reset_password(self, token: str, new_password: str):
+        try:
+            from utils.security import verify_token_payload
+            
+            payload = verify_token_payload(token)
+            if not payload or payload.get("type") != "reset":
+                 return {"status": "error", "message": "Token inválido o expirado"}
+            
+            email = payload.get("sub")
+            
+            # Validar nueva contraseña
+            pwd = new_password
+            if len(pwd) < 6:
+                return {"status": "error", "message": "La contraseña debe tener al menos 6 caracteres"}
+            if not any(char.isdigit() for char in pwd):
+                return {"status": "error", "message": "La contraseña debe contener al menos un número"}
+            if not any(not char.isalnum() for char in pwd):
+                return {"status": "error", "message": "La contraseña debe contener al menos un carácter especial"}
+                
+            hashed_pwd = hash_password(new_password)
+            
+            await self.db.usuarios.update_one({"email": email}, {"$set": {"password": hashed_pwd}})
+            
+            return {"status": "success", "message": "Contraseña actualizada exitosamente"}
+        except Exception as e:
+             return {"status": "error", "message": f"Error en servidor: {str(e)}"}

@@ -29,7 +29,17 @@ cloudinary.config(
     secure=True
 )
 
+# Email Configuration
+SMTP_SERVER = os.getenv("SMTP_SERVER")
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+SMTP_USERNAME = os.getenv("SMTP_USERNAME")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+EMAIL_FROM = os.getenv("EMAIL_FROM")
+
 print(f"☁️ Cloudinary configurado:")
 print(f"  cloud_name: {os.getenv('CLOUD_NAME')}")
 print(f"  api_key: {'✅' if os.getenv('CLOUDINARY_API_KEY') else '❌ NO CONFIGURADO'}")
 print(f"  api_secret: {'✅' if os.getenv('CLOUDINARY_API_SECRET') else '❌ NO CONFIGURADO'}")
+print(f"📧 Email configurado:")
+print(f"  server: {SMTP_SERVER}:{SMTP_PORT}")
+print(f"  user: {SMTP_USERNAME}")
