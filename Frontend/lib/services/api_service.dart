@@ -1,17 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/user_model.dart';
+import '../config/constants.dart';
 
 class ApiService {
-  // Cambia esta URL por la de tu backend
-  static const String baseUrl = 'http://192.168.100.73:8000';
-
   // Registrar usuario
   Future<Map<String, dynamic>> register(UserModel user) async {
     try {
       final response = await http
           .post(
-            Uri.parse('$baseUrl/api/users/'),
+            Uri.parse('${AppConstants.usersEndpoint}/'),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode(user.toJson()),
           )
@@ -60,7 +58,7 @@ class ApiService {
     try {
       final response = await http
           .post(
-            Uri.parse('$baseUrl/api/users/login'),
+            Uri.parse('${AppConstants.usersEndpoint}/login'),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({'email': email, 'password': password}),
           )
@@ -96,7 +94,7 @@ class ApiService {
       return {
         'success': false,
         'message':
-            'No se pudo conectar al servidor. Verifica que el backend esté corriendo en http://localhost:8000',
+            'No se pudo conectar al servidor. Verifica que el backend esté corriendo en ${AppConstants.baseUrl}',
       };
     } catch (e) {
       return {'success': false, 'message': 'Error inesperado: ${e.toString()}'};
@@ -107,7 +105,7 @@ class ApiService {
   Future<UserModel?> getUser(String email) async {
     try {
       final response = await http
-          .get(Uri.parse('$baseUrl/api/users/$email'))
+          .get(Uri.parse('${AppConstants.usersEndpoint}/$email'))
           .timeout(const Duration(seconds: 30));
 
       if (response.statusCode == 200) {
@@ -119,7 +117,6 @@ class ApiService {
       }
       return null;
     } catch (e) {
-      print('Error obteniendo usuario: $e');
       return null;
     }
   }

@@ -17,6 +17,7 @@ class PhotoController {
 
     const userId = 'test_user';
     const conversationId = 'scan_1';
+    final ctx = context;
 
     final detectedPhoto = await service.detectPhoto(
       filePath: foto.path,
@@ -27,7 +28,7 @@ class PhotoController {
     if (detectedPhoto != null) {
       provider.takePhoto(detectedPhoto);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
+      ScaffoldMessenger.of(ctx).showSnackBar(
         const SnackBar(content: Text('Error al analizar la imagen')),
       );
     }

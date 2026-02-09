@@ -9,11 +9,16 @@ class MessageController {
 
   MessageController(this.provider);
 
-  Future<void> enviarMensaje({required BuildContext context, required String message, required String sessionId, required String userId }) async {
-
+  Future<void> enviarMensaje({
+    required BuildContext context,
+    required String message,
+    required String sessionId,
+    required String userId,
+  }) async {
     if (message == '') return;
 
     provider.setLoading(true);
+    final ctx = context;
 
     try {
       final Message botResponse = await service.sendMessage(
@@ -25,25 +30,27 @@ class MessageController {
       if (botResponse.content != '') {
         provider.addMessage(botResponse);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
+        ScaffoldMessenger.of(ctx).showSnackBar(
           const SnackBar(content: Text('Error al obtener respuesta del bot')),
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
-      );
+      ScaffoldMessenger.of(
+        ctx,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       provider.setLoading(false);
     }
   }
 
-  Future<void> obtenerMensajes({required String sessionId}) async{
+  Future<void> obtenerMensajes({required String sessionId}) async {
     if (sessionId == '') return;
 
-    final List<Message> messages = await service.getChatMessages(sessionId: sessionId);
+    final List<Message> messages = await service.getChatMessages(
+      sessionId: sessionId,
+    );
 
-    if(messages.isNotEmpty){
+    if (messages.isNotEmpty) {
       provider.addMessages(messages);
     }
   }

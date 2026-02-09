@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/photo_provider.dart';
@@ -20,23 +19,19 @@ class BigPhotoBox extends StatelessWidget {
       ),
       child: photo == null
           ? const Center(
-        child: Icon(
-          Icons.camera_alt,
-          size: 60,
-          color: Colors.grey,
-        ),
-      )
+              child: Icon(Icons.camera_alt, size: 60, color: Colors.grey),
+            )
           : ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: InteractiveViewer(
-          child: Image.network(
-            photo.path,
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
-          ),
-        ),
-      ),
+              borderRadius: BorderRadius.circular(16),
+              child: InteractiveViewer(
+                child: Image.network(
+                  photo.path,
+                  fit: BoxFit.cover,
+                  width: double.infinity,
+                  height: double.infinity,
+                ),
+              ),
+            ),
     );
   }
 }

@@ -29,12 +29,15 @@ class ScanTab extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SizedBox(height: 64,),
+                  SizedBox(height: 64),
                   if (!hasPhoto) ...[
                     Text(
                       'Toma una foto clara de la zona afectada.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     SizedBox(height: 8),
                     Text(
@@ -54,16 +57,21 @@ class ScanTab extends StatelessWidget {
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child:Column(
+                      child: Column(
                         children: [
                           Text(
                             'Resultado del Análisis',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            photo!.name.isNotEmpty ? photo.name : 'No se pudo identificar la lesión',
+                            photo.name.isNotEmpty
+                                ? photo.name
+                                : 'No se pudo identificar la lesión',
                             textAlign: TextAlign.center,
                             style: const TextStyle(
                               fontSize: 16,
@@ -75,7 +83,10 @@ class ScanTab extends StatelessWidget {
                           Text(
                             photo.confidence,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 14, color: Colors.black87),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black87,
+                            ),
                           ),
                           const SizedBox(height: 10),
                         ],
@@ -102,12 +113,10 @@ class ScanTab extends StatelessWidget {
                 ],
               ),
             ),
-            HamburguerButton(top: 12, left:12),
-
+            HamburguerButton(top: 12, left: 12),
           ],
         ),
       ),
     );
   }
 }
-
