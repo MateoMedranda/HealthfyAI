@@ -1,13 +1,15 @@
 class Message {
   final String type;
   final String content;
+  final String? imageUrl;
 
-  Message({required this.type, required this.content});
+  Message({required this.type, required this.content, this.imageUrl});
 
   factory Message.fromJson(Map<String, dynamic> json) {
     return Message(
       type: json['type'].toString(),
       content: json['content']?.toString() ?? '',
+      imageUrl: json['imageUrl']?.toString(),
     );
   }
 
