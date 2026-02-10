@@ -84,7 +84,7 @@ class _ChatViewState extends State<ChatView> {
       Message(
         type: 'user',
         content: displayMessage,
-        imageUrl: imageUrl,
+        imageUrl: photoProvider.imageUrl,
       ),
     );
 
@@ -170,7 +170,7 @@ class _ChatViewState extends State<ChatView> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               boxShadow: [
                 BoxShadow(blurRadius: 8, color: Colors.black.withAlpha(13)),
               ],
@@ -188,7 +188,9 @@ class _ChatViewState extends State<ChatView> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.grey.shade100,
+                      fillColor: Theme.of(
+                        context,
+                      ).inputDecorationTheme.fillColor,
                     ),
                     onSubmitted: (_) => _sendMessage(),
                   ),

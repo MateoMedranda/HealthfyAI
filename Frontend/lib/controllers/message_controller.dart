@@ -54,6 +54,25 @@ class MessageController {
     );
 
     if (messages.isNotEmpty) {
+      // Intentar obtener la imagen asociada a la sesión (del registro clínico)
+      print('DEBUG: Attempting to fetch image for sessionId: $sessionId');
+      final imageUrl = await service.getSessionImage(sessionId);
+      if (imageUrl != null) {
+        print('DEBUG: Attaching image URL to first message: $imageUrl');
+        // Asignar la imagen al primer mensaje (asumiendo que es el del usuario)
+        // O al primer mensaje de la lista si no hay distinción clara
+        final firstMessage = messages[0];
+        // Crear una copia del mensaje con la URL de la imagen (Message es inmutable pero podemos recrearlo)
+        final newMessage = Message(
+          type: firstMessage.type,
+          content: firstMessage.content,
+          imageUrl: imageUrl,
+        );
+        messages[0] = newMessage;
+      } else {
+        print('DEBUG: No image URL found for sessionId: $sessionId');
+      }
+
       provider.addMessages(messages);
     }
   }

@@ -72,8 +72,9 @@ class _HomeViewState extends State<HomeView> {
           // Lógica para abrir chat independiente
           final authController = context.read<AuthController>();
           final userId = authController.currentUser?.email ?? 'unknown';
-          // Usamos 'general_chat' o similar como sessionId para conversaciones libres
-          const sessionId = 'general_chat';
+          // Usamos un sessionId único basado en el ID del usuario o email
+          final sessionId =
+              'general_chat_${authController.currentUser?.id ?? userId}';
 
           Navigator.push(
             context,
@@ -96,7 +97,9 @@ class _HomeViewState extends State<HomeView> {
           });
         },
         type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.white,
+        backgroundColor: Theme.of(
+          context,
+        ).bottomNavigationBarTheme.backgroundColor,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textSecondary,
         elevation: 8,

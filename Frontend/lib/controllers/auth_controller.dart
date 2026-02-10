@@ -178,4 +178,64 @@ class AuthController with ChangeNotifier {
     notifyListeners();
     return result['success'];
   }
+
+  // Actualizar perfil
+  Future<bool> updateProfile(UserModel updatedUser) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final result = await _apiService.updateUser(
+        updatedUser.email,
+        updatedUser,
+      );
+
+      if (result['success'] && result['data'] != null) {
+        _currentUser = UserModel.fromJson(result['data']);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = result['message'];
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Error al actualizar perfil: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Eliminar cuenta
+  Future<bool> deleteAccount() async {
+    if (_currentUser == null) return false;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final success = await _apiService.deleteUser(_currentUser!.email);
+
+      if (success) {
+        await logout(); // Limpiar sesión local
+        _isLoading = false;
+        return true;
+      } else {
+        _errorMessage = 'No se pudo eliminar la cuenta. Intenta nuevamente.';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Error al eliminar cuenta: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }

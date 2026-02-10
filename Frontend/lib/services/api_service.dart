@@ -198,4 +198,56 @@ class ApiService {
       return {'success': false, 'message': 'Error inesperado: ${e.toString()}'};
     }
   }
+
+  // Actualizar usuario
+  Future<Map<String, dynamic>> updateUser(String email, UserModel user) async {
+    try {
+      final jsonData = user.toJson();
+      // Removemos password del json si está vacío o si no se debe enviar en update simple
+      // El backend maneja update parcial, pero UserModel requiere password en constructor.
+      // Si el usuario no cambió password, enviamos el mismo o lo manejamos.
+      // En este caso enviamos todo el objeto, el backend se encarga.
+
+      final response = await http
+          .put(
+            Uri.parse('${AppConstants.usersEndpoint}/$email'),
+            headers: _headers,
+            body: jsonEncode(jsonData),
+          )
+          .timeout(_timeout);
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['status'] == 'success') {
+          return {'success': true, 'data': responseData['user_data']};
+        } else {
+          return {'success': false, 'message': responseData['message']};
+        }
+      } else {
+        final responseData = jsonDecode(response.body);
+        return {
+          'success': false,
+          'message': responseData['message'] ?? 'Error al actualizar perfil',
+        };
+      }
+    } catch (e) {
+      return {'success': false, 'message': 'Error inesperado: ${e.toString()}'};
+    }
+  }
+
+  // Eliminar usuario
+  Future<bool> deleteUser(String email) async {
+    try {
+      final response = await http
+          .delete(
+            Uri.parse('${AppConstants.usersEndpoint}/$email'),
+            headers: _headers,
+          )
+          .timeout(_timeout);
+
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
 }

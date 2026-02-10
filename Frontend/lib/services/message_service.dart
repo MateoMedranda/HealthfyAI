@@ -67,4 +67,45 @@ class MessageService {
       throw Exception('Error enviando mensaje: $e');
     }
   }
+
+  Future<String?> getSessionImage(String sessionId) async {
+    print('DEBUG: getSessionImage called for sessionId: $sessionId');
+    try {
+      final uri = Uri.parse(
+        '${AppConstants.medicalBotEndpoint}/clinical-records/$sessionId?limit=1',
+      );
+      print('DEBUG: Requesting Image from URI: $uri');
+
+      final headers = {'Content-Type': 'application/json'};
+      if (ApiService.authToken != null) {
+        headers['Authorization'] = 'Bearer ${ApiService.authToken}';
+      }
+
+      final response = await http.get(uri, headers: headers);
+      print('DEBUG: Response status: ${response.statusCode}');
+      print('DEBUG: Response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success' && data['content'] != null) {
+          final List content = data['content'];
+          if (content.isNotEmpty) {
+            final firstRecord = content[0];
+            // Verificar estructura: record -> origen_datos -> imagen_id
+            if (firstRecord['origen_datos'] != null) {
+              final imageUrl = firstRecord['origen_datos']['imagen_id']
+                  ?.toString();
+              print('DEBUG: Image URL found: $imageUrl');
+              return imageUrl;
+            }
+          } else {
+            print('DEBUG: Content is empty');
+          }
+        }
+      }
+    } catch (e) {
+      print('DEBUG: Error getting session image: $e');
+    }
+    return null;
+  }
 }
