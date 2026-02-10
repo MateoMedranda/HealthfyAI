@@ -8,23 +8,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:healthfyai/main.dart';
+import '../lib/widgets/bot_response.dart';
 
+/* metodo principal */
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  print('_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_');
+  print('Pruebas Widgets - BotResponse');
+  print('_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_=_');
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  group('Pruebas correctas', () {
+    testWidgets('Prueba - BotResponse renderiza markdown básico', (WidgetTester tester) async {
+      print('\n Prueba - BotResponse renderiza markdown básico');
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+      // Arrange
+      const md = '# Hola\n\nContenido de prueba';
+
+      // Act
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: BotResponse(text: md),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Assert
+      expect(find.textContaining('Contenido de prueba'), findsOneWidget);
+
+      print('Prueba finalizada');
+    });
   });
+
 }

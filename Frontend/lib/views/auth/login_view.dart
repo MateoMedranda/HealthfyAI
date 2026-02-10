@@ -96,8 +96,6 @@ class _LoginViewState extends State<LoginView> {
                       ),
                     ),
                     const SizedBox(height: 20),
-
-                    // ... (rest of the code)
                     const SizedBox(height: 20),
                     Text(
                       'HealthfyAI',

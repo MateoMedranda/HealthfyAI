@@ -166,7 +166,7 @@ class _DashboardTabState extends State<DashboardTab> {
 
             const SizedBox(height: 12),
 
-            // Card: Advertencia (color suave)
+            // Card: Advertencia
             Card(
               color: AppColors.warningLight,
               elevation: 0,
