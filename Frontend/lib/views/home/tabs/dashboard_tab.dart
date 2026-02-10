@@ -11,8 +11,13 @@ class DashboardTab extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.dashboard, size: 80, color: AppColors.primary),
-          const SizedBox(height: 16),
+          Image.asset(
+            'assets/images/bot_logo.png',
+            width: 120,
+            height: 120,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 24),
           Text('Dashboard', style: AppTextStyles.h2),
           const SizedBox(height: 8),
           Text(
