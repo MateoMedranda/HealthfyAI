@@ -68,6 +68,7 @@ class _ChatViewState extends State<ChatView> {
   void _enviarMensajeInicial(PhotoProvider photoProvider) {
     final diagnosis = photoProvider.diagnosis ?? 'Análisis completado';
     final confidence = photoProvider.confidence ?? 0.0;
+    final imageUrl = photoProvider.imageUrl;
 
     // Mensaje visual bonito para mostrar en el chat
     final displayMessage =
@@ -78,12 +79,16 @@ class _ChatViewState extends State<ChatView> {
     final botMessage =
         'Análisis detectado: $diagnosis (Confianza: ${(confidence * 100).toStringAsFixed(2)}%). ¿Cuáles son los síntomas del paciente?';
 
-    // Agregar mensaje visual del usuario
+    // Agregar mensaje visual del usuario con la imagen
     context.read<MessageProvider>().addMessage(
       Message(
         type: 'user',
         content: displayMessage,
+<<<<<<< HEAD
         imageUrl: photoProvider.imageUrl,
+=======
+        imageUrl: imageUrl,
+>>>>>>> 8a1a672d013e2c73e2e70d45cb17573ece4b8a23
       ),
     );
 
