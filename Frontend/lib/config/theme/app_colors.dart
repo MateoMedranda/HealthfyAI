@@ -20,9 +20,9 @@ class AppColors {
   static const Color success = Color(0xFF27AE60);
   static const Color warning = Color(0xFFF39C12);
   // Color suave para tarjetas de advertencia (amarillo claro)
-  static const Color warningLight = Color(0xFFFFF4CC);
+  static const Color warningLight = Color(0xFFFD7349);
   // Color de texto para advertencias (tono oscuro sobre amarillo claro)
-  static const Color warningText = Color(0xFF8A6B00);
+  static const Color warningText = Color(0xFFBE0707);
 
   // Colores adicionales
   static const Color white = Colors.white;
@@ -30,20 +30,20 @@ class AppColors {
   static const Color grey = Color(0xFFECF0F1);
 
   // Dark Mode Colors
-  // Dark Mode Colors - WhatsApp Style
+  // Dark Mode Colors - Dark Style
   static const Color backgroundDark = Color(
     0xFF111B21,
-  ); // WhatsApp Dark Background
+  ); // Dark Background
   static const Color surfaceDark = Color(
     0xFF202C33,
-  ); // WhatsApp Dark Surface (AppBar, Items)
+  ); // Dark Surface (AppBar, Items)
   static const Color inputBackgroundDark = Color(
     0xFF2A3942,
-  ); // WhatsApp Input Background
+  ); // Dark Input Background
   static const Color textPrimaryDark = Color(
     0xFFE9EDEF,
-  ); // WhatsApp Text Primary
+  ); // Dark Text Primary
   static const Color textSecondaryDark = Color(
     0xFF8696A0,
-  ); // WhatsApp Text Secondary
+  ); // Dark Text Secondary
 }

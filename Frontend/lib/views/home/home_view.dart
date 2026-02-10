@@ -23,7 +23,7 @@ class _HomeViewState extends State<HomeView> {
   late final List<Widget> _tabs;
 
   final List<String> _titles = [
-    'Dashboard',
+    'Inicio',
     'Escanear',
     'Diagnósticos',
     'Perfil',
