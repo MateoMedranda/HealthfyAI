@@ -80,7 +80,11 @@ class _ChatViewState extends State<ChatView> {
 
     // Agregar mensaje visual del usuario
     context.read<MessageProvider>().addMessage(
-      Message(type: 'user', content: displayMessage),
+      Message(
+        type: 'user',
+        content: displayMessage,
+        imageUrl: photoProvider.imageUrl,
+      ),
     );
 
     // Marcar que ya se envió el mensaje inicial
@@ -155,6 +159,7 @@ class _ChatViewState extends State<ChatView> {
                       text: message.content ?? '',
                       color: AppColors.primaryDark,
                       textColor: AppColors.white,
+                      imageUrl: message.imageUrl,
                     ),
                   );
                 }
@@ -164,7 +169,7 @@ class _ChatViewState extends State<ChatView> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               boxShadow: [
                 BoxShadow(blurRadius: 8, color: Colors.black.withAlpha(13)),
               ],
@@ -182,7 +187,9 @@ class _ChatViewState extends State<ChatView> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.grey.shade100,
+                      fillColor: Theme.of(
+                        context,
+                      ).inputDecorationTheme.fillColor,
                     ),
                     onSubmitted: (_) => _sendMessage(),
                   ),

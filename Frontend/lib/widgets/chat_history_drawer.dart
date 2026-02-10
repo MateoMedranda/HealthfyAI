@@ -32,7 +32,9 @@ class _ScanHistoryDrawerState extends State<ScanHistoryDrawer> {
   Widget build(BuildContext context) {
     return Drawer(
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
-      backgroundColor: AppColors.primaryLight,
+      backgroundColor:
+          Theme.of(context).drawerTheme.backgroundColor ??
+          AppColors.primaryLight,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

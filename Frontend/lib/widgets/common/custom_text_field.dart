@@ -11,6 +11,10 @@ class CustomTextField extends StatelessWidget {
   final Widget? prefixIcon;
   final Widget? suffixIcon;
   final String? Function(String?)? validator;
+  final bool readOnly;
+  final int? maxLines;
+  final VoidCallback? onTap;
+  final Color? fillColor;
 
   const CustomTextField({
     super.key,
@@ -22,6 +26,10 @@ class CustomTextField extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.validator,
+    this.readOnly = false,
+    this.maxLines = 1,
+    this.onTap,
+    this.fillColor,
   });
 
   @override
@@ -36,6 +44,9 @@ class CustomTextField extends StatelessWidget {
           obscureText: obscureText,
           keyboardType: keyboardType,
           validator: validator,
+          readOnly: readOnly,
+          maxLines: maxLines,
+          onTap: onTap,
           style: AppTextStyles.bodyMedium,
           decoration: InputDecoration(
             hintText: hint,
@@ -43,7 +54,11 @@ class CustomTextField extends StatelessWidget {
             prefixIcon: prefixIcon,
             suffixIcon: suffixIcon,
             filled: true,
-            fillColor: AppColors.white,
+            fillColor:
+                fillColor ??
+                Theme.of(
+                  context,
+                ).inputDecorationTheme.fillColor, // Use theme or override
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.grey),

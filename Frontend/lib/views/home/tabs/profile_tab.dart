@@ -4,6 +4,7 @@ import '../../../config/theme/app_colors.dart';
 import '../../../config/theme/app_text_styles.dart';
 import '../../../controllers/auth_controller.dart';
 import '../../../widgets/common/custom_button.dart';
+import '../../profile/edit_profile_view.dart';
 
 class ProfileTab extends StatelessWidget {
   const ProfileTab({super.key});
@@ -102,6 +103,21 @@ class ProfileTab extends StatelessWidget {
 
           const SizedBox(height: 32),
 
+          // Botón Editar Perfil
+          CustomButton(
+            text: 'Editar Perfil',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileView(),
+                ),
+              );
+            },
+            backgroundColor: AppColors.primary,
+          ),
+          const SizedBox(height: 16),
+
           // Botón cerrar sesión
           CustomButton(
             text: 'Cerrar Sesión',
@@ -111,9 +127,77 @@ class ProfileTab extends StatelessWidget {
                 Navigator.pushReplacementNamed(context, '/login');
               }
             },
-            backgroundColor: AppColors.error,
+            backgroundColor: AppColors.primary.withOpacity(0.7),
+          ),
+          const SizedBox(height: 16),
+
+          // Botón Eliminar Cuenta
+          TextButton(
+            onPressed: () => _showDeleteAccountDialog(context, authController),
+            child: Text(
+              'Eliminar Cuenta',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
+            ),
           ),
           const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(
+    BuildContext context,
+    AuthController authController,
+  ) {
+    final email = authController.currentUser?.email ?? '';
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Eliminar Cuenta'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Esta acción es irreversible. Se eliminarán todos tus datos.',
+              style: TextStyle(color: AppColors.error),
+            ),
+            const SizedBox(height: 16),
+            Text('Para confirmar, escribe "eliminar $email":'),
+            const SizedBox(height: 8),
+            TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                hintText: 'Escribe aquí...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () async {
+              if (controller.text.trim() == 'eliminar $email') {
+                Navigator.pop(context); // Cerrar diálogo
+                final success = await authController.deleteAccount();
+                if (context.mounted && success) {
+                  Navigator.pushReplacementNamed(context, '/login');
+                }
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('La confirmación no coincide')),
+                );
+              }
+            },
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('ELIMINAR'),
+          ),
         ],
       ),
     );

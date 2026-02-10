@@ -26,8 +26,20 @@ class AppColors {
   static const Color grey = Color(0xFFECF0F1);
 
   // Dark Mode Colors
-  static const Color backgroundDark = Color(0xFF121212);
-  static const Color surfaceDark = Color(0xFF1E1E1E);
-  static const Color textPrimaryDark = Color(0xFFECF0F1);
-  static const Color textSecondaryDark = Color(0xFFBDC3C7);
+  // Dark Mode Colors - WhatsApp Style
+  static const Color backgroundDark = Color(
+    0xFF111B21,
+  ); // WhatsApp Dark Background
+  static const Color surfaceDark = Color(
+    0xFF202C33,
+  ); // WhatsApp Dark Surface (AppBar, Items)
+  static const Color inputBackgroundDark = Color(
+    0xFF2A3942,
+  ); // WhatsApp Input Background
+  static const Color textPrimaryDark = Color(
+    0xFFE9EDEF,
+  ); // WhatsApp Text Primary
+  static const Color textSecondaryDark = Color(
+    0xFF8696A0,
+  ); // WhatsApp Text Secondary
 }
