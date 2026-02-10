@@ -9,11 +9,7 @@ class Message {
     return Message(
       type: json['type'].toString(),
       content: json['content']?.toString() ?? '',
-<<<<<<< HEAD
       imageUrl: json['image_url']?.toString(),
-=======
-      imageUrl: json['imageUrl']?.toString(),
->>>>>>> 8a1a672d013e2c73e2e70d45cb17573ece4b8a23
     );
   }
 

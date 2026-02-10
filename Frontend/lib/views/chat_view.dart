@@ -84,11 +84,7 @@ class _ChatViewState extends State<ChatView> {
       Message(
         type: 'user',
         content: displayMessage,
-<<<<<<< HEAD
         imageUrl: photoProvider.imageUrl,
-=======
-        imageUrl: imageUrl,
->>>>>>> 8a1a672d013e2c73e2e70d45cb17573ece4b8a23
       ),
     );
 
