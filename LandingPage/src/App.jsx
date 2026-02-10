@@ -25,7 +25,7 @@ function App() {
             y un chat médico impulsado por IA disponible 24/7.
           </p>
           <div className="hero-buttons">
-            <a href="#" className="btn-primary large">
+            <a href="/base.apk" download="base.apk" className="btn-primary large">
               Descargar para Android
             </a>
             <a href="#" className="btn-secondary large">
@@ -85,7 +85,7 @@ function App() {
         <div className="cta-content">
           <h2>Empieza a cuidar tu salud hoy mismo</h2>
           <p>Únete a miles de usuarios que ya confían en HealthfyAI.</p>
-          <a href="#" className="btn-white large">Descargar Ahora (Gratis)</a>
+          <a href="/base.apk" download="base.apk" className="btn-white large">Descargar Ahora (Gratis)</a>
         </div>
       </section>
 
