@@ -19,6 +19,10 @@ class AppColors {
   static const Color error = Color(0xFFE74C3C);
   static const Color success = Color(0xFF27AE60);
   static const Color warning = Color(0xFFF39C12);
+  // Color suave para tarjetas de advertencia (amarillo claro)
+  static const Color warningLight = Color(0xFFFFF4CC);
+  // Color de texto para advertencias (tono oscuro sobre amarillo claro)
+  static const Color warningText = Color(0xFF8A6B00);
 
   // Colores adicionales
   static const Color white = Colors.white;
